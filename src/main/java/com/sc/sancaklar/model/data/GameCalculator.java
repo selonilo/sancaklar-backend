@@ -1,6 +1,8 @@
 package com.sc.sancaklar.model.data;
 
+import com.sc.sancaklar.model.entity.VillageBuildingsEntity;
 import com.sc.sancaklar.model.enums.BuildingType;
+import com.sc.sancaklar.model.enums.UnitType;
 
 public class GameCalculator {
     // Temel üretim değerleri (Seviye 0 iken bile azıcık üretim olsun)
@@ -200,5 +202,101 @@ public class GameCalculator {
         // Academy (Carpan 80): Lv 1 -> 80 Puan ekler.
 
         return (int) (multiplier * Math.pow(level, 1.1));
+    }
+
+
+    // Araştırma Maliyeti
+    public static int[] getResearchCost(UnitType unit) {
+        // Sırasıyla: Odun, Et, Demir
+        return switch (unit) {
+            case SPEARMAN -> new int[]{100, 100, 100}; // Ucuz
+            case SWORDSMAN -> new int[]{500, 400, 300};
+            case AXEMAN -> new int[]{700, 600, 500};
+            case LIGHT_CAVALRY -> new int[]{1200, 1000, 800};
+            case CONQUEROR -> new int[]{15000, 20000, 15000}; // Çok pahalı
+            default -> new int[]{500, 500, 500};
+        };
+    }
+
+    // Araştırma Süresi (Saniye)
+    public static long getResearchTime(UnitType unit, int smithyLevel, int worldSpeed) {
+        int baseSeconds = switch (unit) {
+            case SPEARMAN -> 300; // 5 dk
+            case SWORDSMAN -> 900; // 15 dk
+            case CONQUEROR -> 10800; // 3 saat
+            default -> 1800;
+        };
+
+        // Demirci seviyesi arttıkça araştırma hızlanır
+        double reduction = 1 + (smithyLevel * 0.05);
+        return (long) ((baseSeconds / reduction) / worldSpeed);
+    }
+
+    // Gereksinim Kontrolü (Bina seviyeleri yetiyor mu?)
+    public static boolean isResearchRequirementsMet(UnitType unit, VillageBuildingsEntity buildings) {
+        return switch (unit) {
+            case SPEARMAN -> buildings.getSmithy() >= 1; // Demirci 1 yeterli
+            case SWORDSMAN -> buildings.getSmithy() >= 3;
+            case AXEMAN -> buildings.getSmithy() >= 5;
+            case LIGHT_CAVALRY -> buildings.getStable() >= 3 && buildings.getSmithy() >= 10;
+            case CONQUEROR -> buildings.getAcademy() >= 1;
+            default -> true;
+        };
+    }
+
+    // Birim Başına Maliyet
+    public static int[] getUnitCost(UnitType type) {
+        // Odun, Et, Demir
+        return switch (type) {
+            case SPEARMAN -> new int[]{50, 30, 10};
+            case SWORDSMAN -> new int[]{30, 30, 70};
+            case AXEMAN -> new int[]{60, 30, 40};
+            case ARCHER -> new int[]{100, 30, 60};
+            case LIGHT_CAVALRY -> new int[]{125, 100, 250};
+            case HEAVY_CAVALRY -> new int[]{200, 150, 600};
+            case RAM -> new int[]{300, 200, 200};
+            case CONQUEROR -> new int[]{40000, 50000, 50000}; // Çok pahalı
+            default -> new int[]{100, 100, 100};
+        };
+    }
+
+    // Birim Başına Nüfus (Çiftlikte kapladığı yer)
+    public static int getUnitPopulation(UnitType type) {
+        return switch (type) {
+            case LIGHT_CAVALRY -> 4;
+            case HEAVY_CAVALRY -> 6;
+            case RAM -> 5;
+            case CATAPULT -> 8;
+            case CONQUEROR -> 100;
+            default -> 1; // Piyadeler 1 yer kaplar
+        };
+    }
+
+    // Birim Başına Üretim Süresi (Saniye)
+    public static long getUnitProductionTime(UnitType type, int buildingLevel, int worldSpeed) {
+        double baseSeconds = switch (type) {
+            case SPEARMAN -> 100; // Başlangıç hızı
+            case SWORDSMAN -> 150;
+            case AXEMAN -> 180;
+            case CONQUEROR -> 10000;
+            default -> 200;
+        };
+
+        // Bina seviyesi arttıkça üretim hızlanır (Her seviyede %5 civarı)
+        // Formül: TabanSüre * (1.05 ^ -Level)
+        double reduction = Math.pow(1.05, -buildingLevel); // Seviye arttıkça süre azalır
+
+        // Dünya hızı da etkiler
+        return (long) Math.max(1, (baseSeconds * reduction) / worldSpeed);
+    }
+
+    // Bu birim hangi binada üretilir?
+    public static BuildingType getProductionBuilding(UnitType type) {
+        return switch (type) {
+            case SCOUT, LIGHT_CAVALRY, HEAVY_CAVALRY -> BuildingType.STABLE;
+            case RAM, CATAPULT -> BuildingType.WORKSHOP;
+            case CONQUEROR -> BuildingType.ACADEMY; // Veya Saray
+            default -> BuildingType.BARRACKS; // Piyadeler
+        };
     }
 }

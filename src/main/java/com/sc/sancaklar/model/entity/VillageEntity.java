@@ -31,9 +31,13 @@ public class VillageEntity extends BaseEntity {
     @OneToOne(mappedBy = "village", cascade = CascadeType.ALL)
     private VillageResourcesEntity resources;
 
-    // --- ASKERLER (EKLENEN KISIM) ---
+    // --- ASKERLER ---
     @OneToOne(mappedBy = "village", cascade = CascadeType.ALL)
     private VillageTroopsEntity troops;
+
+    // --- ARAŞTIRMA ---
+    @OneToOne(mappedBy = "village", cascade = CascadeType.ALL)
+    private VillageResearchesEntity researches;
 
     private int loyalty = 100;
 }
