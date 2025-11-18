@@ -1,5 +1,6 @@
 package com.sc.sancaklar.model.dto.village;
 
+import com.sc.sancaklar.model.dto.VillageResearchesModel;
 import lombok.Data;
 
 @Data
@@ -18,4 +19,5 @@ public class VillageModel {
     private VillageBuildingsModel buildings;
     private VillageResourcesModel resources;
     private VillageTroopsModel troops;
+    private VillageResearchesModel researches;
 }

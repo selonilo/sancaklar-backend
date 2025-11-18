@@ -1,14 +1,12 @@
 package com.sc.sancaklar.model.mapper;
 
 import com.sc.sancaklar.model.data.GameCalculator;
+import com.sc.sancaklar.model.dto.VillageResearchesModel;
 import com.sc.sancaklar.model.dto.village.VillageBuildingsModel;
 import com.sc.sancaklar.model.dto.village.VillageModel;
 import com.sc.sancaklar.model.dto.village.VillageResourcesModel;
 import com.sc.sancaklar.model.dto.village.VillageTroopsModel;
-import com.sc.sancaklar.model.entity.VillageBuildingsEntity;
-import com.sc.sancaklar.model.entity.VillageEntity;
-import com.sc.sancaklar.model.entity.VillageResourcesEntity;
-import com.sc.sancaklar.model.entity.VillageTroopsEntity;
+import com.sc.sancaklar.model.entity.*;
 import org.springframework.stereotype.Component;
 
 @Component
@@ -49,6 +47,8 @@ public class VillageConverter {
         model.setResources(toResourcesModel(entity.getResources(), entity.getBuildings(), worldSpeed));
 
         model.setTroops(toTroopsModel(entity.getTroops()));
+
+        model.setResearches(toResearchesModel(entity.getResearches()));
 
         return model;
     }
@@ -110,6 +110,26 @@ public class VillageConverter {
         model.setRams(entity.getRams());
         model.setCatapults(entity.getCatapults());
         model.setConquerors(entity.getConquerors());
+        return model;
+    }
+
+    private VillageResearchesModel toResearchesModel(VillageResearchesEntity entity) {
+        if (entity == null) return new VillageResearchesModel(); // Boş dön, null patlamasın
+
+        VillageResearchesModel model = new VillageResearchesModel();
+        model.setSpearmen(entity.getSpearmen());
+        model.setSwordsmen(entity.getSwordsmen());
+        model.setAxemen(entity.getAxemen());
+        model.setArchers(entity.getArchers());
+
+        model.setScouts(entity.getScouts());
+        model.setLightCavalry(entity.getLightCavalry());
+        model.setHeavyCavalry(entity.getHeavyCavalry());
+
+        model.setRams(entity.getRams());
+        model.setCatapults(entity.getCatapults());
+        model.setConquerors(entity.getConquerors());
+
         return model;
     }
 }

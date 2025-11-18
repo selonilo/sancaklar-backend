@@ -26,6 +26,7 @@ public class VillageServiceImpl implements VillageService {
     private final VillageBuildingsRepository villageBuildingsRepository;
     private final VillageResourcesRepository villageResourcesRepository;
     private final VillageTroopsRepository villageTroopsRepository;
+    private final VillageResearchesRepository villageResearchesRepository;
     private final PlayerRepository playerRepository;
     private final VillageConverter villageConverter;
     private final ResourceService resourceService;
@@ -68,6 +69,7 @@ public class VillageServiceImpl implements VillageService {
         createInitialBuildings(village);
         createInitialResources(village);
         createInitialTroops(village);
+        createInitialResearches(village);
 
         return villageConverter.toModel(village);
     }
@@ -103,6 +105,15 @@ public class VillageServiceImpl implements VillageService {
 
         VillageTroopsEntity saved = villageTroopsRepository.save(troops);
         village.setTroops(saved);
+    }
+
+    private void createInitialResearches(VillageEntity village) {
+        VillageResearchesEntity researches = new VillageResearchesEntity();
+        researches.setVillage(village);
+
+        VillageResearchesEntity saved = villageResearchesRepository.save(researches);
+
+        village.setResearches(saved);
     }
 
     private int[] findCoordinatesByRegion(RegionDirection direction) {
