@@ -6,7 +6,7 @@ import lombok.Data;
 @Data
 public class LoginModel {
     @NotBlank
-    private String mail;
+    private String email;
     @NotBlank
     private String password;
 }

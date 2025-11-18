@@ -1,6 +1,6 @@
 package com.sc.sancaklar.model.data;
 
-public class PostHardyConstant {
+public class ProjectConstant {
     public static final String PASSWORD = "password";
     public static final String USERNAME = "username";
     public static final String MAIL_TEMPLATE = "password.html";

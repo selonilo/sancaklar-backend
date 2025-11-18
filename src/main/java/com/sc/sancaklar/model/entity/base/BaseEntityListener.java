@@ -22,6 +22,12 @@ public class BaseEntityListener {
     }
 
     private String getCurrentUser() {
-        return SecurityContextHolder.getContext().getAuthentication().getName();
+        String name;
+        if (SecurityContextHolder.getContext().getAuthentication() != null) {
+            name = SecurityContextHolder.getContext().getAuthentication().getName();
+        } else {
+            name = "SYSTEM";
+        }
+        return name;
     }
 }

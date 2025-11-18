@@ -6,7 +6,7 @@ import com.sc.sancaklar.exception.AlreadyExistException;
 import com.sc.sancaklar.exception.AnErrorOccurredException;
 import com.sc.sancaklar.exception.MailOrPasswordIncorrectException;
 import com.sc.sancaklar.exception.NotFoundException;
-import com.sc.sancaklar.model.data.PostHardyConstant;
+import com.sc.sancaklar.model.data.ProjectConstant;
 import com.sc.sancaklar.model.dto.ResponseMessageModel;
 import com.sc.sancaklar.model.dto.user.*;
 import com.sc.sancaklar.model.entity.*;
@@ -84,8 +84,8 @@ public class AuthServiceImpl implements AuthService {
     }
 
     public TokenModel login(LoginModel loginModel) {
-        UserEntity user = userRepository.findByEmail(loginModel.getMail())
-                .orElseThrow(() -> new NotFoundException(loginModel.getMail()));
+        UserEntity user = userRepository.findByEmail(loginModel.getEmail())
+                .orElseThrow(() -> new NotFoundException(loginModel.getEmail()));
 
         if (!passwordEncoder.matches(loginModel.getPassword(), user.getPassword())) {
             throw new MailOrPasswordIncorrectException();
@@ -109,19 +109,19 @@ public class AuthServiceImpl implements AuthService {
                 MimeMessage message = mailSender.createMimeMessage();
                 MimeMessageHelper helper = new MimeMessageHelper(message);
                 Context context = new Context();
-                context.setVariable(PostHardyConstant.PASSWORD, password);
-                context.setVariable(PostHardyConstant.USERNAME, userEntity.getUsername());
-                String text = templateEngine.process(PostHardyConstant.MAIL_TEMPLATE, context);
+                context.setVariable(ProjectConstant.PASSWORD, password);
+                context.setVariable(ProjectConstant.USERNAME, userEntity.getUsername());
+                String text = templateEngine.process(ProjectConstant.MAIL_TEMPLATE, context);
                 helper.setFrom(from);
                 helper.setTo(userEntity.getEmail());
-                helper.setSubject(PostHardyConstant.MAIL_SUBJECT);
+                helper.setSubject(ProjectConstant.MAIL_SUBJECT);
                 helper.setText(text, true);
                 mailSender.send(message);
             } catch (MessagingException e) {
                 throw new AnErrorOccurredException(e.getMessage());
             }
             ResponseMessageModel responseMessageModel = new ResponseMessageModel();
-            responseMessageModel.setMessage(passwordRefreshModel.getMail() + PostHardyConstant.MAIL_SUCCESS);
+            responseMessageModel.setMessage(passwordRefreshModel.getMail() + ProjectConstant.MAIL_SUCCESS);
             return responseMessageModel;
         } else {
             throw new NotFoundException(passwordRefreshModel.getMail());
