@@ -2,7 +2,9 @@ package com.sc.sancaklar.scheduled;
 
 import com.sc.sancaklar.model.data.GameCalculator;
 import com.sc.sancaklar.model.entity.*;
+import com.sc.sancaklar.model.enums.MovementType;
 import com.sc.sancaklar.repository.*;
+import com.sc.sancaklar.service.BattleService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
@@ -22,6 +24,9 @@ public class GameLoopService {
     private final ResearchQueueRepository researchQueueRepository;
     private final UnitRecruitmentRepository unitRecruitmentRepository;
     private final VillageTroopsRepository villageTroopsRepository;
+    private final ArmyMovementRepository movementRepository;
+    private final BattleService battleService;
+    private final StationedTroopsRepository stationedTroopsRepository;
 
     /**
      * Her 1000 milisaniyede (1 saniye) bir çalışır.
@@ -190,5 +195,73 @@ public class GameLoopService {
         }
 
         villageTroopsRepository.save(troops);
+    }
+
+    @Scheduled(fixedRate = 1000)
+    @Transactional
+    public void checkMovements() {
+        LocalDateTime now = LocalDateTime.now();
+        // Varış zamanı gelmiş hareketler
+        List<ArmyMovementEntity> movements = movementRepository.findByArrivalTimeBeforeAndIsProcessedFalse(now);
+
+        for (ArmyMovementEntity move : movements) {
+            processMovement(move);
+        }
+    }
+
+    private void processMovement(ArmyMovementEntity move) {
+
+        // --- 1. SAVAŞ/DESTEK/DÖNÜŞ MANTIĞI ---
+        if (move.getType() == MovementType.ATTACK) {
+            // Savaş motoru çalışır, sonuçları veritabanına uygular
+            battleService.resolveBattle(move);
+
+        } else if (move.getType() == MovementType.SUPPORT) {
+            // Destek askerleri hedef köye yerleşir
+            placeSupportTroops(move);
+
+        } else if (move.getType() == MovementType.RETURN) {
+            // Askerler ve ganimet köye eklenir
+            returnTroopsHome(move);
+        }
+
+        // --- 2. İŞLEMİN KAYIT ALTINA ALINMASI (BAYRAĞI ÇEKME) ---
+
+        // 1. İşlem tamamlandığı için bayrağı TRUE'ya çekiyoruz.
+        move.setProcessed(true);
+
+        // 2. Hareket kaydını veritabanında GÜNCELLE (Silme yerine, kayıt için tutuyoruz)
+        movementRepository.save(move);
+    }
+
+    // Destek askerlerini köye yerleştirme
+    private void placeSupportTroops(ArmyMovementEntity move) {
+        StationedTroopsEntity station = new StationedTroopsEntity();
+        station.setLocationVillage(move.getTargetVillage());
+        station.setOwnerVillage(move.getSourceVillage());
+
+        station.setSpearmen(move.getSpearmen());
+        station.setSwordsmen(move.getSwordsmen());
+        // ... diğerlerini set et
+
+        stationedTroopsRepository.save(station);
+    }
+
+    // Askerler eve döndü, ana stoğa ekle
+    private void returnTroopsHome(ArmyMovementEntity move) {
+        VillageEntity home = move.getTargetVillage(); // Dönüşte target = evdir
+        VillageTroopsEntity troops = home.getTroops();
+        VillageResourcesEntity res = home.getResources();
+
+        // Askerleri ekle
+        troops.setSpearmen(troops.getSpearmen() + move.getSpearmen());
+        // ...
+
+        // Ganimeti ekle
+        res.setWoodAmount(res.getWoodAmount() + move.getWoodCarried());
+        res.setMeatAmount(res.getMeatAmount() + move.getMeatCarried());
+        res.setIronAmount(res.getIronAmount() + move.getIronCarried());
+
+        // Kaydet
     }
 }

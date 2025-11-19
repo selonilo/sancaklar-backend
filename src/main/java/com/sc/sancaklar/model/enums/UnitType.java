@@ -10,5 +10,6 @@ public enum UnitType {
     HEAVY_CAVALRY,  // Ağır Atlı
     RAM,            // Şahmerdan (Sur yıkar)
     CATAPULT,       // Mancınık (Bina yıkar)
-    CONQUEROR       // Fetihçi (Köy alır)
+    CONQUEROR,      // Fetihçi (Köy alır)
+    WALL
 }

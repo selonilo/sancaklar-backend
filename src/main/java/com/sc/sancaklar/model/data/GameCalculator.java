@@ -299,4 +299,59 @@ public class GameCalculator {
             default -> BuildingType.BARRACKS; // Piyadeler
         };
     }
+
+    // 1. Saldırı Gücü
+    public static int getAttackPower(UnitType type) {
+        return switch (type) {
+            case SPEARMAN -> 10;
+            case SWORDSMAN -> 25;
+            case AXEMAN -> 40; // Tam saldırı birimi
+            case ARCHER -> 15;
+            case LIGHT_CAVALRY -> 130;
+            case HEAVY_CAVALRY -> 150;
+            case RAM -> 2;
+            case CONQUEROR -> 30;
+            default -> 0;
+        };
+    }
+
+    // 2. Savunma Gücü (Genel, Atlıya Karşı, Okçuya Karşı ortalaması basitleştirildi)
+    public static int getDefensePower(UnitType type) {
+        return switch (type) {
+            case SPEARMAN -> 35; // Atlılara karşı iyidir (Basitleştirilmiş genel defans)
+            case SWORDSMAN -> 50; // Genel defans
+            case AXEMAN -> 10;    // Savunması kötüdür
+            case ARCHER -> 40;
+            case LIGHT_CAVALRY -> 30;
+            case HEAVY_CAVALRY -> 200; // Tank
+            case WALL -> 0; // Sur bina olduğu için formülü ayrıdır
+            default -> 10;
+        };
+    }
+
+    // 3. Ganimet Taşıma Kapasitesi
+    public static int getCarryCapacity(UnitType type) {
+        return switch (type) {
+            case SPEARMAN -> 25;
+            case SWORDSMAN -> 15;
+            case AXEMAN -> 10;
+            case LIGHT_CAVALRY -> 80; // Atlılar çok taşır
+            case HEAVY_CAVALRY -> 50;
+            default -> 0;
+        };
+    }
+
+    // 4. Hız (Dakika / Kare) - Haritada hareket süresi için
+    public static int getSpeedInMinutes(UnitType type) {
+        return switch (type) {
+            case SCOUT -> 9; // En hızlı
+            case LIGHT_CAVALRY -> 10;
+            case HEAVY_CAVALRY -> 11;
+            case AXEMAN -> 18;
+            case SWORDSMAN -> 22;
+            case RAM -> 30; // En yavaş (Ordu en yavaş birime göre gider)
+            case CONQUEROR -> 35;
+            default -> 18;
+        };
+    }
 }
