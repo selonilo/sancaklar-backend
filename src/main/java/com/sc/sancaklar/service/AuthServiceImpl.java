@@ -64,7 +64,8 @@ public class AuthServiceImpl implements AuthService {
 
     public UserModel register(UserModel userModel) {
         var optUser = userRepository.findByEmail(userModel.getEmail());
-        if (optUser.isPresent()) {
+        var optUserByUsername = userRepository.findByUsername(userModel.getUsername());
+        if (optUser.isPresent() || optUserByUsername.isPresent()) {
             throw new AlreadyExistException(userModel.getEmail());
         }
         UserEntity entity = UserMapper.mapTo(userModel);
@@ -84,16 +85,18 @@ public class AuthServiceImpl implements AuthService {
     }
 
     public TokenModel login(LoginModel loginModel) {
-        UserEntity user = userRepository.findByEmail(loginModel.getEmail())
-                .orElseThrow(() -> new NotFoundException(loginModel.getEmail()));
+        UserEntity user = userRepository.findByUsername(loginModel.getUsername())
+                .orElseThrow(() -> new NotFoundException(loginModel.getUsername()));
 
         if (!passwordEncoder.matches(loginModel.getPassword(), user.getPassword())) {
             throw new MailOrPasswordIncorrectException();
         }
         TokenModel tokenModel = new TokenModel();
         tokenModel.setToken(jwtService.generateToken(user));
-        tokenModel.setUserId(user.getId());
-        tokenModel.setUsername(user.getUsername());
+        UserModel userModel = new UserModel();
+        userModel.setId(user.getId());
+        userModel.setUsername(user.getUsername());
+        tokenModel.setUser(userModel);
         return tokenModel;
     }
 

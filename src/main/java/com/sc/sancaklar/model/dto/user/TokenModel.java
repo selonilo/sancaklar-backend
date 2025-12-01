@@ -5,6 +5,5 @@ import lombok.Data;
 @Data
 public class TokenModel {
     private String token;
-    private Long userId;
-    private String username;
+    private UserModel user;
 }

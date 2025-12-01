@@ -6,6 +6,7 @@ import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.stereotype.Repository;
 
 import java.util.List;
+import java.util.Optional;
 
 @Repository
 public interface StationedTroopsRepository extends JpaRepository<StationedTroopsEntity, Long> {
@@ -16,4 +17,6 @@ public interface StationedTroopsRepository extends JpaRepository<StationedTroops
      * @return Bu köyde konuşlanmış ordu listesi.
      */
     List<StationedTroopsEntity> findByLocationVillage(VillageEntity locationVillage);
+
+    Optional<StationedTroopsEntity> findByOwnerVillageAndLocationVillage(VillageEntity ownerVillage, VillageEntity locationVillage);
 }

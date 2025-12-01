@@ -12,6 +12,7 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDateTime;
 import java.util.List;
+import java.util.Optional;
 
 @Service
 @RequiredArgsConstructor
@@ -27,6 +28,7 @@ public class GameLoopService {
     private final ArmyMovementRepository movementRepository;
     private final BattleService battleService;
     private final StationedTroopsRepository stationedTroopsRepository;
+    private final VillageResourcesRepository villageResourcesRepository;
 
     /**
      * Her 1000 milisaniyede (1 saniye) bir çalışır.
@@ -236,32 +238,72 @@ public class GameLoopService {
 
     // Destek askerlerini köye yerleştirme
     private void placeSupportTroops(ArmyMovementEntity move) {
-        StationedTroopsEntity station = new StationedTroopsEntity();
+
+        // 1. Aynı kaynaktan gelen destek var mı kontrol et
+        Optional<StationedTroopsEntity> existingStationOpt = stationedTroopsRepository
+                .findByOwnerVillageAndLocationVillage(move.getSourceVillage(), move.getTargetVillage());
+
+        // Eğer kayıt varsa onu al, yoksa yeni bir Entity oluştur
+        StationedTroopsEntity station = existingStationOpt.orElseGet(StationedTroopsEntity::new);
+
+        // 2. Temel İlişkileri Set Et (Mevcut olsa bile tekrar set etmek güvenlidir)
         station.setLocationVillage(move.getTargetVillage());
         station.setOwnerVillage(move.getSourceVillage());
 
-        station.setSpearmen(move.getSpearmen());
-        station.setSwordsmen(move.getSwordsmen());
-        // ... diğerlerini set et
+        // 3. GELEN ASKERLERİ MEVCUT ASKERE EKLE (MERGE LOGİĞİ)
 
+        // Piyadeler
+        station.setSpearmen(station.getSpearmen() + move.getSpearmen());
+        station.setSwordsmen(station.getSwordsmen() + move.getSwordsmen());
+        station.setAxemen(station.getAxemen() + move.getAxemen());
+        station.setArchers(station.getArchers() + move.getArchers());
+
+        // Atliler ve Casus
+        station.setScouts(station.getScouts() + move.getScouts());
+        station.setLightCavalry(station.getLightCavalry() + move.getLightCavalry());
+        station.setHeavyCavalry(station.getHeavyCavalry() + move.getHeavyCavalry());
+
+        // Kuşatma ve Özel
+        station.setRams(station.getRams() + move.getRams());
+        station.setCatapults(station.getCatapults() + move.getCatapults());
+        station.setConquerors(station.getConquerors() + move.getConquerors());
+
+        // 4. Kaydet (Merge veya Yeni Kayıt)
         stationedTroopsRepository.save(station);
     }
 
     // Askerler eve döndü, ana stoğa ekle
     private void returnTroopsHome(ArmyMovementEntity move) {
-        VillageEntity home = move.getTargetVillage(); // Dönüşte target = evdir
+        VillageEntity home = move.getTargetVillage(); // Dönüşte target, orduyu kabul eden kendi köyüdür
         VillageTroopsEntity troops = home.getTroops();
         VillageResourcesEntity res = home.getResources();
 
-        // Askerleri ekle
-        troops.setSpearmen(troops.getSpearmen() + move.getSpearmen());
-        // ...
+        // 1. Askerleri Ana Stoğa Ekle (Tüm 10 Birim) 💂
 
-        // Ganimeti ekle
+        // Piyadeler
+        troops.setSpearmen(troops.getSpearmen() + move.getSpearmen());
+        troops.setSwordsmen(troops.getSwordsmen() + move.getSwordsmen());
+        troops.setAxemen(troops.getAxemen() + move.getAxemen());
+        troops.setArchers(troops.getArchers() + move.getArchers());
+
+        // Atliler ve Casus
+        troops.setScouts(troops.getScouts() + move.getScouts());
+        troops.setLightCavalry(troops.getLightCavalry() + move.getLightCavalry());
+        troops.setHeavyCavalry(troops.getHeavyCavalry() + move.getHeavyCavalry());
+
+        // Kuşatma ve Özel
+        troops.setRams(troops.getRams() + move.getRams());
+        troops.setCatapults(troops.getCatapults() + move.getCatapults());
+        troops.setConquerors(troops.getConquerors() + move.getConquerors());
+
+        // 2. Ganimeti Ana Stoğa Ekle (Loot) 💰
+        // Double kullandığımız için miktar artışlarında hassasiyeti koruyoruz
         res.setWoodAmount(res.getWoodAmount() + move.getWoodCarried());
         res.setMeatAmount(res.getMeatAmount() + move.getMeatCarried());
         res.setIronAmount(res.getIronAmount() + move.getIronCarried());
 
-        // Kaydet
+        // 3. Veritabanına Kaydet
+        villageTroopsRepository.save(troops);
+        villageResourcesRepository.save(res);
     }
 }
