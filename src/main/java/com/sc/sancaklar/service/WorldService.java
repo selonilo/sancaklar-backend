@@ -8,7 +8,7 @@ import java.util.List;
 
 public interface WorldService {
     WorldModel createWorld(WorldModel worldModel);
-    List<WorldModel> getActiveWorlds();
+    List<WorldModel> getActiveWorlds(Long userId);
     List<WorldModel> getAllWorlds();
     void deleteWorld(Long worldId);
     WorldModel deactivateWorld(Long worldId);

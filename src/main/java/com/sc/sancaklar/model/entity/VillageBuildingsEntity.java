@@ -32,7 +32,7 @@ public class VillageBuildingsEntity extends BaseEntity {
 
     // Kaynak Binaları
     private int timberCamp = 0;       // Oduncu
-    private int meatProduction = 0;   // Et Üretim (Kil yerine)
+    private int meatPlant = 0;   // Et Üretim (Kil yerine)
     private int ironMine = 0;         // Demir Madeni
 
     private int farm = 1;      // Çiftlik

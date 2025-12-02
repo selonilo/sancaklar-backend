@@ -122,6 +122,11 @@
             <artifactId>imageio-webp</artifactId>
             <version>3.12.0</version>
         </dependency>
+        <dependency>
+            <groupId>org.jobrunr</groupId>
+            <artifactId>jobrunr-spring-boot-3-starter</artifactId>
+            <version>6.3.3</version>
+        </dependency>
     </dependencies>
 
     <build>

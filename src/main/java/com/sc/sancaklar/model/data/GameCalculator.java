@@ -44,82 +44,82 @@ public class GameCalculator {
         // Her bina için taban maliyetler (Örnek)
         switch (type) {
             // --- ANA BİNALAR ---
-            case HEADQUARTERS: // Ana Bina
+            case headquarters: // Ana Bina
                 baseWood = 200;
                 baseMeat = 150;
                 baseIron = 100;
                 break;
 
-            case WAREHOUSE:    // Depo (Erken oyun için ucuz olmalı)
+            case warehouse:    // Depo (Erken oyun için ucuz olmalı)
                 baseWood = 60;
                 baseMeat = 50;
                 baseIron = 40;
                 break;
 
-            case FARM:         // Çiftlik
+            case farm:         // Çiftlik
                 baseWood = 45;
                 baseMeat = 40;
                 baseIron = 30;
                 break;
 
             // --- KAYNAK ÜRETİM ---
-            case TIMBER_CAMP:  // Oduncu
+            case timberCamp:  // Oduncu
                 baseWood = 50;
                 baseMeat = 60;
                 baseIron = 40;
                 break;
 
-            case MEAT_PLANT:   // Et Tesisi (Kil Ocağı muadili)
+            case meatPlant:   // Et Tesisi (Kil Ocağı muadili)
                 baseWood = 65;
                 baseMeat = 50;
                 baseIron = 40;
                 break;
 
-            case IRON_MINE:    // Demir Madeni (Biraz daha pahalıdır)
+            case ironMine:    // Demir Madeni (Biraz daha pahalıdır)
                 baseWood = 75;
                 baseMeat = 65;
                 baseIron = 70;
                 break;
 
             // --- ASKERİ BİNALAR ---
-            case BARRACKS:     // Kışla
+            case barracks:     // Kışla
                 baseWood = 200;
                 baseMeat = 100;
                 baseIron = 80;
                 break;
 
-            case STABLE:       // Ahır (Atlılar için, daha pahalı)
+            case stable:       // Ahır (Atlılar için, daha pahalı)
                 baseWood = 270;
                 baseMeat = 240;
                 baseIron = 260;
                 break;
 
-            case WORKSHOP:     // Atölye (Kuşatma silahları)
+            case workshop:     // Atölye (Kuşatma silahları)
                 baseWood = 300;
                 baseMeat = 240;
                 baseIron = 260;
                 break;
 
-            case SMITHY:       // Demirci (Araştırmalar için)
+            case smithy:       // Demirci (Araştırmalar için)
                 baseWood = 220;
                 baseMeat = 180;
                 baseIron = 240;
                 break;
 
-            case WALL:         // Sur (Genelde taş/et ister)
+            case wall:         // Sur (Genelde taş/et ister)
                 baseWood = 50;
                 baseMeat = 100;
                 baseIron = 20;
                 break;
 
             // --- EKONOMİ VE STRATEJİ ---
-            case MARKET:       // Pazar
+            case market:       // Pazar
                 baseWood = 100;
                 baseMeat = 100;
                 baseIron = 100;
                 break;
 
-            case ACADEMY:      // Akademi (Oyunun en pahalı binası)
+            case academy:      // Akademi (Oyunun en pahalı binası)
                 // Not: Bu base cost. Seviye çarpanı olacağı için 15.000 yerine
                 // formüle uygun bir taban fiyat belirledik.
                 // Formülde (1.2 ^ level) ile çarpılınca gerçek değerini bulacak.
@@ -167,27 +167,27 @@ public class GameCalculator {
     public static int calculateBuildingPoints(BuildingType type, int level) {
         int multiplier = switch (type) {
             // --- TIER 1: PRESTİJ VE YÖNETİM (En Yüksek Puan) ---
-            case ACADEMY -> 80; // Oyunun en değerli binası
-            case HEADQUARTERS -> 15; // Ana bina seviyesi önemlidir
-            case SMITHY -> 12; // Teknoloji binası değerlidir
+            case academy -> 80; // Oyunun en değerli binası
+            case headquarters -> 15; // Ana bina seviyesi önemlidir
+            case smithy -> 12; // Teknoloji binası değerlidir
 
             // --- TIER 2: İLERİ ASKERİYE (Yüksek Puan) ---
-            case WORKSHOP -> 10; // Kuşatma silahları komplekstir
-            case STABLE -> 8; // Ahır pahalıdır, puanı iyidir
+            case workshop -> 10; // Kuşatma silahları komplekstir
+            case stable -> 8; // Ahır pahalıdır, puanı iyidir
 
             // --- TIER 3: TEMEL ASKERİYE VE SAVUNMA (Orta Puan) ---
-            case BARRACKS -> 6;
-            case WALL -> 6; // Sur stratejiktir
+            case barracks -> 6;
+            case wall -> 6; // Sur stratejiktir
 
             // --- TIER 4: EKONOMİ (Orta Puan) ---
-            case MARKET -> 5;
-            case IRON_MINE -> 4; // Demir genelde daha değerlidir
-            case MEAT_PLANT -> 4;
-            case TIMBER_CAMP -> 4;
+            case market -> 5;
+            case ironMine -> 4; // Demir genelde daha değerlidir
+            case meatPlant -> 4;
+            case timberCamp -> 4;
 
             // --- TIER 5: ALTYAPI (Düşük Puan - Sürümden Kazanır) ---
-            case WAREHOUSE -> 3;
-            case FARM -> 2; // Çiftlik çok seviyelidir (30), puanı düşük tutulur
+            case warehouse -> 3;
+            case farm -> 2; // Çiftlik çok seviyelidir (30), puanı düşük tutulur
 
             default -> 3;
         };
@@ -293,10 +293,10 @@ public class GameCalculator {
     // Bu birim hangi binada üretilir?
     public static BuildingType getProductionBuilding(UnitType type) {
         return switch (type) {
-            case SCOUT, LIGHT_CAVALRY, HEAVY_CAVALRY -> BuildingType.STABLE;
-            case RAM, CATAPULT -> BuildingType.WORKSHOP;
-            case CONQUEROR -> BuildingType.ACADEMY; // Veya Saray
-            default -> BuildingType.BARRACKS; // Piyadeler
+            case SCOUT, LIGHT_CAVALRY, HEAVY_CAVALRY -> BuildingType.stable;
+            case RAM, CATAPULT -> BuildingType.workshop;
+            case CONQUEROR -> BuildingType.academy; // Veya Saray
+            default -> BuildingType.barracks; // Piyadeler
         };
     }
 

@@ -43,7 +43,7 @@ public class RecruitmentController {
             @PathVariable String buildingType) {
 
         try {
-            BuildingType type = BuildingType.valueOf(buildingType.toUpperCase());
+            BuildingType type = BuildingType.valueOf(buildingType);
             return ResponseEntity.ok(recruitmentService.getRecruitmentQueue(villageId, type));
         } catch (IllegalArgumentException e) {
             // Frontend'e hangi tiplerin geçerli olduğunu bildiriyoruz.

@@ -124,10 +124,10 @@ public class RecruitmentServiceImpl implements RecruitmentService{
 
     private int getBuildingLevel(VillageBuildingsEntity b, BuildingType type) {
         return switch (type) {
-            case BARRACKS -> b.getBarracks();
-            case STABLE -> b.getStable();
-            case WORKSHOP -> b.getWorkshop();
-            case ACADEMY -> b.getAcademy();
+            case barracks -> b.getBarracks();
+            case stable -> b.getStable();
+            case workshop -> b.getWorkshop();
+            case academy -> b.getAcademy();
             default -> 0;
         };
     }

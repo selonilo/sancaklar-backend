@@ -23,7 +23,7 @@ public class BuildingConstructionEntity extends BaseEntity {
     @JoinColumn(name = "village_id", nullable = false)
     private VillageEntity village;
 
-    @Enumerated(EnumType.STRING)
+    @Enumerated(EnumType.ORDINAL)
     private BuildingType buildingType;
 
     private int targetLevel; // İnşaat bitince bina bu seviyeye gelecek
@@ -33,4 +33,7 @@ public class BuildingConstructionEntity extends BaseEntity {
 
     @Column(nullable = false)
     private LocalDateTime completionTime;
+
+    @Column(name = "job_id")
+    private String jobId; // JobRunr'ın ürettiği ID (UUID formatında string)
 }

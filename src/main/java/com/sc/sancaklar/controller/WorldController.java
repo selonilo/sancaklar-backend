@@ -27,9 +27,9 @@ public class WorldController {
             summary = "Aktif Dünyaları Listele",
             description = "Kullanıcıların **giriş yapabileceği** aktif ve açık durumdaki tüm dünyaları listeler."
     )
-    @GetMapping("/active")
-    public ResponseEntity<List<WorldModel>> getActiveWorlds() {
-        return ResponseEntity.ok(worldService.getActiveWorlds());
+    @GetMapping("/active/{userId}")
+    public ResponseEntity<List<WorldModel>> getActiveWorlds(@PathVariable(value = "userId") Long userId) {
+        return ResponseEntity.ok(worldService.getActiveWorlds(userId));
     }
 
     // --- KRİTİK GİRİŞ NOKTASI ---

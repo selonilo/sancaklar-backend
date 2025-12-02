@@ -34,7 +34,7 @@ public class GameLoopService {
      * Her 1000 milisaniyede (1 saniye) bir çalışır.
      * "fixedRate" önceki görevin başlamasından itibaren süreyi sayar.
      */
-    @Scheduled(fixedRate = 1000)
+    /*@Scheduled(fixedRate = 1000)
     @Transactional // Bir hata olursa o saniyelik işlem geri alınsın
     public void checkCompletedConstructions() {
         LocalDateTime now = LocalDateTime.now();
@@ -53,7 +53,7 @@ public class GameLoopService {
         constructionRepository.deleteAll(completedTasks);
 
         // Log basabilirsin: System.out.println(completedTasks.size() + " bina tamamlandı.");
-    }
+    }*/
 
     private void completeConstruction(BuildingConstructionEntity task) {
         VillageEntity village = task.getVillage();
@@ -83,23 +83,23 @@ public class GameLoopService {
         int level = task.getTargetLevel();
 
         switch (task.getBuildingType()) {
-            case HEADQUARTERS: buildings.setHeadquarters(level); break;
-            case BARRACKS:     buildings.setBarracks(level); break;
-            case STABLE:       buildings.setStable(level); break;
-            case WORKSHOP:     buildings.setWorkshop(level); break;
-            case ACADEMY:      buildings.setAcademy(level); break;
-            case SMITHY:       buildings.setSmithy(level); break;
-            case MARKET:       buildings.setMarket(level); break;
-            case TIMBER_CAMP:  buildings.setTimberCamp(level); break;
-            case MEAT_PLANT:   buildings.setMeatProduction(level); break;
-            case IRON_MINE:    buildings.setIronMine(level); break;
-            case FARM:         buildings.setFarm(level); break;
-            case WAREHOUSE:    buildings.setWarehouse(level); break;
-            case WALL:         buildings.setWall(level); break;
+            case headquarters: buildings.setHeadquarters(level); break;
+            case barracks:     buildings.setBarracks(level); break;
+            case stable:       buildings.setStable(level); break;
+            case workshop:     buildings.setWorkshop(level); break;
+            case academy:      buildings.setAcademy(level); break;
+            case smithy:       buildings.setSmithy(level); break;
+            case market:       buildings.setMarket(level); break;
+            case timberCamp:  buildings.setTimberCamp(level); break;
+            case meatPlant:   buildings.setMeatPlant(level); break;
+            case ironMine:    buildings.setIronMine(level); break;
+            case farm:         buildings.setFarm(level); break;
+            case warehouse:    buildings.setWarehouse(level); break;
+            case wall:         buildings.setWall(level); break;
         }
     }
 
-    @Scheduled(fixedRate = 5000)
+    /*@Scheduled(fixedRate = 5000)
     @Transactional
     public void checkCompletedResearches() {
         LocalDateTime now = LocalDateTime.now();
@@ -112,7 +112,7 @@ public class GameLoopService {
         if (!completed.isEmpty()) {
             researchQueueRepository.deleteAll(completed);
         }
-    }
+    }*/
 
     private void completeResearch(ResearchQueueEntity task) {
         VillageEntity village = task.getVillage();
@@ -160,7 +160,7 @@ public class GameLoopService {
         }
     }
 
-    @Scheduled(fixedRate = 5000)
+    /*@Scheduled(fixedRate = 5000)
     @Transactional
     public void checkCompletedRecruitments() {
         LocalDateTime now = LocalDateTime.now();
@@ -173,7 +173,7 @@ public class GameLoopService {
         if (!completed.isEmpty()) {
             unitRecruitmentRepository.deleteAll(completed);
         }
-    }
+    }*/
 
     private void completeRecruitment(UnitRecruitmentEntity task) {
         VillageEntity village = task.getVillage();
@@ -199,7 +199,7 @@ public class GameLoopService {
         villageTroopsRepository.save(troops);
     }
 
-    @Scheduled(fixedRate = 1000)
+    /*@Scheduled(fixedRate = 1000)
     @Transactional
     public void checkMovements() {
         LocalDateTime now = LocalDateTime.now();
@@ -209,7 +209,7 @@ public class GameLoopService {
         for (ArmyMovementEntity move : movements) {
             processMovement(move);
         }
-    }
+    }*/
 
     private void processMovement(ArmyMovementEntity move) {
 

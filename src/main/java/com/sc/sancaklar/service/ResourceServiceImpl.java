@@ -42,7 +42,7 @@ public class ResourceServiceImpl implements ResourceService {
 
         // 2. Saatlik üretim hızlarını hesapla (Level ve Hız bazlı)
         int woodPerHour = GameCalculator.calculateHourlyProduction(buildings.getTimberCamp(), worldSpeed);
-        int meatPerHour = GameCalculator.calculateHourlyProduction(buildings.getMeatProduction(), worldSpeed); // Et
+        int meatPerHour = GameCalculator.calculateHourlyProduction(buildings.getMeatPlant(), worldSpeed); // Et
         int ironPerHour = GameCalculator.calculateHourlyProduction(buildings.getIronMine(), worldSpeed);
 
         // 3. Geçen sürede ne kadar üretildiğini bul

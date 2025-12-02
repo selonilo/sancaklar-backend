@@ -17,6 +17,7 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 import java.util.Optional;
@@ -52,14 +53,19 @@ public class WorldServiceImpl implements WorldService {
      * Sadece aktif (oynanabilir) dünyaları getirir.
      * Giriş ekranında listelemek için kullanılır.
      */
-    public List<WorldModel> getActiveWorlds() {
+    public List<WorldModel> getActiveWorlds(Long userId) {
         // 1. Repo'dan entity listesini çek
         List<WorldEntity> activeWorlds = worldRepository.findByIsActiveTrue();
-
-        // 2. Java Stream API ile hepsini Model'e çevir
-        return activeWorlds.stream()
-                .map(worldConverter::toModel) // Her bir entity için toModel çağırır
-                .toList();
+        UserEntity user = userRepository.findById(userId)
+                .orElseThrow(() -> new RuntimeException("Kullanıcı bulunamadı!"));
+        List<WorldModel> worldModelList = new ArrayList<>();
+        for (var world : activeWorlds) {
+            WorldModel worldModel = worldConverter.toModel(world);
+            Optional<PlayerEntity> existingPlayer = playerRepository.findByUserAndWorld(user, world);
+            worldModel.setJoining(existingPlayer.isPresent());
+            worldModelList.add(worldModel);
+        }
+        return worldModelList;
     }
 
     /**

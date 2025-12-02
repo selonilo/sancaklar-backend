@@ -65,7 +65,7 @@ public class VillageConverter {
         model.setSmithy(entity.getSmithy());
         model.setMarket(entity.getMarket());
         model.setTimberCamp(entity.getTimberCamp());
-        model.setMeatProduction(entity.getMeatProduction());
+        model.setMeatPlant(entity.getMeatPlant());
         model.setIronMine(entity.getIronMine());
         model.setFarm(entity.getFarm());
         model.setWarehouse(entity.getWarehouse());
@@ -90,7 +90,7 @@ public class VillageConverter {
 
             // --- SAATLİK ÜRETİM HIZLARINI HESAPLA VE EKLE ---
             model.setWoodHourlyProduction(GameCalculator.calculateHourlyProduction(buildEntity.getTimberCamp(), worldSpeed));
-            model.setMeatHourlyProduction(GameCalculator.calculateHourlyProduction(buildEntity.getMeatProduction(), worldSpeed));
+            model.setMeatHourlyProduction(GameCalculator.calculateHourlyProduction(buildEntity.getMeatPlant(), worldSpeed));
             model.setIronHourlyProduction(GameCalculator.calculateHourlyProduction(buildEntity.getIronMine(), worldSpeed));
         }
 
