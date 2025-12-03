@@ -4,6 +4,7 @@ import com.sc.sancaklar.model.data.GameCalculator;
 import com.sc.sancaklar.model.dto.ConstructionModel;
 import com.sc.sancaklar.model.dto.PlayerModel;
 import com.sc.sancaklar.model.dto.UpgradeBuildingRequest;
+import com.sc.sancaklar.model.dto.VillageMapModel;
 import com.sc.sancaklar.model.dto.village.VillageBuildingsModel;
 import com.sc.sancaklar.model.dto.village.VillageModel;
 import com.sc.sancaklar.model.entity.*;
@@ -78,7 +79,7 @@ public class VillageServiceImpl implements VillageService {
 
             long durationSeconds = GameCalculator.calculateConstructionTimeInSeconds(type, targetLevel, hqLevel, worldSpeed);
 
-            setBuildingDetails(buildingsModel, type, costWood, costMeat, costIron, durationSeconds);
+            setBuildingDetails(buildingsModel, type, costWood, costMeat, costIron, durationSeconds, targetLevel);
         }
 
         return villageModel;
@@ -114,7 +115,7 @@ public class VillageServiceImpl implements VillageService {
     // --- CONSTRUCTION LOGIC (GÜNCELLENDİ) ---
 
     @Transactional
-    public void upgradeBuilding(UpgradeBuildingRequest request) {
+    public ConstructionModel upgradeBuilding(UpgradeBuildingRequest request) {
         // 1. Köyü Bul
         VillageEntity village = villageRepository.findById(request.getVillageId())
                 .orElseThrow(() -> new RuntimeException("Köy bulunamadı!"));
@@ -198,7 +199,7 @@ public class VillageServiceImpl implements VillageService {
 
         // 11. Job ID'yi kaydet
         construction.setJobId(scheduledJobId.asUUID().toString());
-        constructionRepository.save(construction);
+        return constructionConverter.toModel(constructionRepository.save(construction));
     }
 
     // --- WORKER METHOD (Zamanı Gelince Burası Çalışır) ---
@@ -250,89 +251,103 @@ public class VillageServiceImpl implements VillageService {
         };
     }
 
-    private void setBuildingDetails(VillageBuildingsModel model, BuildingType type, int wood, int meat, int iron, long duration) {
+    private void setBuildingDetails(VillageBuildingsModel model, BuildingType type, int wood, int meat, int iron, long duration, int targetLevel) {
         switch (type) {
             case headquarters -> {
                 model.setHeadquartersCostWood(wood);
                 model.setHeadquartersCostMeat(meat);
                 model.setHeadquartersCostIron(iron);
-                model.setHeadquartersDuration(duration); // <-- Yeni eklendi
+                model.setHeadquartersDuration(duration);
+                model.setHeadquartersTargetLevel(targetLevel);
             }
             case barracks -> {
                 model.setBarracksCostWood(wood);
                 model.setBarracksCostMeat(meat);
                 model.setBarracksCostIron(iron);
                 model.setBarracksDuration(duration);
+                model.setBarracksTargetLevel(targetLevel);
             }
             case stable -> {
                 model.setStableCostWood(wood);
                 model.setStableCostMeat(meat);
                 model.setStableCostIron(iron);
                 model.setStableDuration(duration);
+                model.setStableTargetLevel(targetLevel);
             }
             case workshop -> {
                 model.setWorkshopCostWood(wood);
                 model.setWorkshopCostMeat(meat);
                 model.setWorkshopCostIron(iron);
                 model.setWorkshopDuration(duration);
+                model.setWorkshopTargetLevel(targetLevel);
             }
             case academy -> {
                 model.setAcademyCostWood(wood);
                 model.setAcademyCostMeat(meat);
                 model.setAcademyCostIron(iron);
                 model.setAcademyDuration(duration);
+                model.setAcademyTargetLevel(targetLevel);
             }
             case smithy -> {
                 model.setSmithyCostWood(wood);
                 model.setSmithyCostMeat(meat);
                 model.setSmithyCostIron(iron);
                 model.setSmithyDuration(duration);
+                model.setSmithyTargetLevel(targetLevel);
             }
             case market -> {
                 model.setMarketCostWood(wood);
                 model.setMarketCostMeat(meat);
                 model.setMarketCostIron(iron);
                 model.setMarketDuration(duration);
+                model.setMarketTargetLevel(targetLevel);
             }
             case timberCamp -> {
                 model.setTimberCampCostWood(wood);
                 model.setTimberCampCostMeat(meat);
                 model.setTimberCampCostIron(iron);
                 model.setTimberCampDuration(duration);
+                model.setTimberCampTargetLevel(targetLevel);
             }
             case meatPlant -> {
                 model.setMeatPlantCostWood(wood);
                 model.setMeatPlantCostMeat(meat);
                 model.setMeatPlantCostIron(iron);
                 model.setMeatPlantDuration(duration);
+                model.setMeatPlantTargetLevel(targetLevel);
             }
             case ironMine -> {
                 model.setIronMineCostWood(wood);
                 model.setIronMineCostMeat(meat);
                 model.setIronMineCostIron(iron);
                 model.setIronMineDuration(duration);
+                model.setIronMineTargetLevel(targetLevel);
             }
             case farm -> {
                 model.setFarmCostWood(wood);
                 model.setFarmCostMeat(meat);
                 model.setFarmCostIron(iron);
                 model.setFarmDuration(duration);
+                model.setFarmTargetLevel(targetLevel);
             }
             case warehouse -> {
                 model.setWarehouseCostWood(wood);
                 model.setWarehouseCostMeat(meat);
                 model.setWarehouseCostIron(iron);
                 model.setWarehouseDuration(duration);
+                model.setWarehouseTargetLevel(targetLevel);
             }
             case wall -> {
                 model.setWallCostWood(wood);
                 model.setWallCostMeat(meat);
                 model.setWallCostIron(iron);
                 model.setWallDuration(duration);
+                model.setWallTargetLevel(targetLevel);
             }
         }
     }
 
+    @Override
     public List<ConstructionModel> getConstructionQueue(Long villageId) {
         if (!villageRepository.existsById(villageId)) {
             throw new RuntimeException("Köy bulunamadı!");
@@ -341,6 +356,27 @@ public class VillageServiceImpl implements VillageService {
         return constructions.stream()
                 .map(constructionConverter::toModel)
                 .toList();
+    }
+
+    @Override
+    public List<VillageMapModel> getListByWorldId(Long worldId) {
+        List<VillageEntity> villages = villageRepository.findAllByWorldId(worldId);
+
+        return villages.stream()
+                .map(this::convertToMapDTO)
+                .toList();
+    }
+
+    private VillageMapModel convertToMapDTO(VillageEntity village) {
+        return VillageMapModel.builder()
+                .id(village.getId())
+                .name(village.getName())
+                .xcoord(village.getXcoord())
+                .ycoord(village.getYcoord())
+                .points(village.getPoints())
+                .playerId(village.getPlayer().getId())
+                .playerName(village.getPlayer().getUser().getUsername())
+                .build();
     }
 
     // Helper: Seviye Okuma

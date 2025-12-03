@@ -70,4 +70,18 @@ public class VillageBuildingsModel {
     private long farmDuration;
     private long warehouseDuration;
     private long wallDuration;
+
+    private int headquartersTargetLevel;
+    private int barracksTargetLevel;
+    private int stableTargetLevel;
+    private int workshopTargetLevel;
+    private int academyTargetLevel;
+    private int smithyTargetLevel;
+    private int marketTargetLevel;
+    private int timberCampTargetLevel;
+    private int meatPlantTargetLevel;
+    private int ironMineTargetLevel;
+    private int farmTargetLevel;
+    private int warehouseTargetLevel;
+    private int wallTargetLevel;
 }

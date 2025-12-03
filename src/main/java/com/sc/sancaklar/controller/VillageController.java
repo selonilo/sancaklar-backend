@@ -2,6 +2,7 @@ package com.sc.sancaklar.controller;
 
 import com.sc.sancaklar.model.dto.ConstructionModel;
 import com.sc.sancaklar.model.dto.UpgradeBuildingRequest;
+import com.sc.sancaklar.model.dto.VillageMapModel;
 import com.sc.sancaklar.model.dto.village.VillageModel;
 import com.sc.sancaklar.service.VillageService;
 import io.swagger.v3.oas.annotations.Operation;
@@ -39,9 +40,8 @@ public class VillageController {
             description = "İstenen binanın (Örn: BARRACKS) bir sonraki seviyeye çıkarılması için inşaat emri oluşturur. Kaynak kontrolü ve düşümü bu aşamada yapılır."
     )
     @PostMapping("/build")
-    public ResponseEntity<String> upgradeBuilding(@RequestBody UpgradeBuildingRequest request) {
-        villageService.upgradeBuilding(request);
-        return ResponseEntity.ok("İnşaat emri başarıyla verildi!");
+    public ResponseEntity<ConstructionModel> upgradeBuilding(@RequestBody UpgradeBuildingRequest request) {
+        return ResponseEntity.ok(villageService.upgradeBuilding(request));
     }
 
     @Operation(
@@ -55,5 +55,18 @@ public class VillageController {
 
         List<ConstructionModel> queue = villageService.getConstructionQueue(villageId);
         return ResponseEntity.ok(queue);
+    }
+
+    @Operation(
+            summary = "Dünyadaki Tüm Köyleri Görüntüle",
+            description = "Dünyadaki Tüm Köyleri listeler."
+    )
+    @GetMapping("/getListByWorldId/{worldId}")
+    public ResponseEntity<List<VillageMapModel>> getListByWorldId(
+            @Parameter(description = "İlgili Dünya ID'si", example = "1")
+            @PathVariable Long worldId) {
+
+        List<VillageMapModel> villageModelList = villageService.getListByWorldId(worldId);
+        return ResponseEntity.ok(villageModelList);
     }
 }
