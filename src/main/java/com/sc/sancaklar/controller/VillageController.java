@@ -69,4 +69,20 @@ public class VillageController {
         List<VillageMapModel> villageModelList = villageService.getListByWorldId(worldId);
         return ResponseEntity.ok(villageModelList);
     }
+
+    @Operation(
+            summary = "Kuyruktaki inşaat silme",
+            description = "Kuyruktaki inşaatı siler."
+    )
+    @DeleteMapping("/cancelConstruction/{constructionId}")
+    public void cancelConstruction(
+            @Parameter(description = "Kuyruk ID", example = "1")
+            @PathVariable Long constructionId) {
+        villageService.cancelConstruction(constructionId);
+    }
+
+    @PutMapping("update")
+    public void update(@RequestBody VillageModel villageModel) {
+        villageService.update(villageModel);
+    }
 }

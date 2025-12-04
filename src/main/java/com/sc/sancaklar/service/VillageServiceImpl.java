@@ -25,6 +25,7 @@ import java.time.ZoneId;
 import java.util.List;
 import java.util.Optional;
 import java.util.Random;
+import java.util.UUID;
 
 @Service
 @RequiredArgsConstructor
@@ -44,7 +45,7 @@ public class VillageServiceImpl implements VillageService {
     // YENİ EKLENDİ: JobRunr Servisi
     private final JobScheduler jobScheduler;
 
-    private static final int MAP_SIZE = 1000;
+    private static final int MAP_SIZE = 200;
 
     @Transactional
     @Override
@@ -101,6 +102,7 @@ public class VillageServiceImpl implements VillageService {
         village.setYcoord(coords[1]);
         village.setPoints(26);
         village.setLoyalty(100);
+        village.setWorld(playerEntity.getWorld());
 
         village = villageRepository.save(village);
 
@@ -223,14 +225,118 @@ public class VillageServiceImpl implements VillageService {
         villageBuildingsRepository.save(buildings);
 
         // 3. Puan Hesapla (Opsiyonel ama önerilir)
-        // int pointsToAdd = GameCalculator.calculatePoints(task.getBuildingType(), task.getTargetLevel());
-        // village.setPoints(village.getPoints() + pointsToAdd);
-        // villageRepository.save(village);
+        int pointsToAdd = GameCalculator.calculateBuildingPoints(task.getBuildingType(), task.getTargetLevel());
+        village.setPoints(village.getPoints() + pointsToAdd);
+        villageRepository.save(village);
 
         // 4. Görevi Kuyruktan Sil
         constructionRepository.delete(task);
 
         System.out.println("İnşaat tamamlandı: Köy " + village.getId() + " - " + task.getBuildingType());
+    }
+
+    @Transactional
+    public void cancelConstruction(Long constructionId) {
+        // 1. İptal edilecek inşaatı bul
+        BuildingConstructionEntity task = constructionRepository.findById(constructionId)
+                .orElseThrow(() -> new RuntimeException("İnşaat bulunamadı!"));
+
+        VillageEntity village = task.getVillage();
+        VillageResourcesEntity resources = village.getResources();
+
+        // 2. İade Edilecek Kaynakları Hesapla ve Geri Ver
+        int refundWood = GameCalculator.calculateBuildingCost(task.getBuildingType(), task.getTargetLevel(), "WOOD");
+        int refundMeat = GameCalculator.calculateBuildingCost(task.getBuildingType(), task.getTargetLevel(), "MEAT");
+        int refundIron = GameCalculator.calculateBuildingCost(task.getBuildingType(), task.getTargetLevel(), "IRON");
+
+        resources.setWoodAmount(resources.getWoodAmount() + refundWood);
+        resources.setMeatAmount(resources.getMeatAmount() + refundMeat);
+        resources.setIronAmount(resources.getIronAmount() + refundIron);
+
+        // 3. Mevcut Job'ı sil
+        if (task.getJobId() != null) {
+            jobScheduler.delete(UUID.fromString(task.getJobId()));
+        }
+
+        // 4. Kaydı sil
+        constructionRepository.delete(task);
+
+        // Veritabanındaki silme işleminin flush olduğundan emin olalım ki
+        // aşağıda listeyi çekerken gelmesin.
+        constructionRepository.flush();
+
+        System.out.println("İnşaat iptal edildi. ID: " + constructionId);
+
+        // --- 5. KRİTİK NOKTA: KUYRUĞU YENİDEN DÜZENLE ---
+        rescheduleQueue(village);
+    }
+
+    /**
+     * Bu metod köydeki kalan tüm inşaatları tarar ve zamanlarını kaydırır.
+     */
+    private void rescheduleQueue(VillageEntity village) {
+        // 1. Köydeki bekleyen TÜM inşaatları, başlama zamanına göre sıralı çek
+        List<BuildingConstructionEntity> queue = constructionRepository
+                .findAllByVillageOrderByStartTimeAsc(village);
+
+        if (queue.isEmpty()) return;
+
+        // 2. Referans zamanı al (Şu an)
+        // Eğer şu an çalışan bir inşaat varsa, zincir onun bitişinden sonra başlamalı.
+        // Hiçbir şey çalışmıyorsa "Şimdi"den başlamalı.
+        LocalDateTime timelinePointer = LocalDateTime.now();
+
+        for (BuildingConstructionEntity construction : queue) {
+
+            // Eğer inşaatın başlangıç zamanı şu andan önceyse, bu inşaat ZATEN BAŞLAMIŞTIR (Running).
+            // Çalışan inşaatın süresini değiştiremeyiz, sadece pointer'ı onun bitişine çekeriz.
+            if (construction.getStartTime().isBefore(LocalDateTime.now())) {
+                timelinePointer = construction.getCompletionTime();
+                continue; // Bu turu pas geç, sıradakine bak
+            }
+
+            // --- SIRADAKİ (BEKLEYEN) İŞLERİ ÖNE ÇEK ---
+
+            // A. Orijinal süresini hesapla (Bitiş - Başlangıç)
+            // Duration kullanarak saniye farkını buluyoruz
+            long durationSeconds = java.time.Duration.between(
+                    construction.getStartTime(),
+                    construction.getCompletionTime()
+            ).getSeconds();
+
+            // B. Yeni zamanları ayarla
+            // Yeni Başlangıç = Bir önceki işin bittiği an (timelinePointer)
+            LocalDateTime newStartTime = timelinePointer;
+            // Yeni Bitiş = Yeni Başlangıç + Süre
+            LocalDateTime newCompletionTime = newStartTime.plusSeconds(durationSeconds);
+
+            // C. Entity'yi güncelle
+            construction.setStartTime(newStartTime);
+            construction.setCompletionTime(newCompletionTime);
+
+            // D. Eski Job'ı JobRunr'dan sil
+            if (construction.getJobId() != null) {
+                jobScheduler.delete(UUID.fromString(construction.getJobId()));
+            }
+
+            // E. Yeni Zamanla Job Oluştur
+            OffsetDateTime jobTime = newCompletionTime.atZone(ZoneId.systemDefault()).toOffsetDateTime();
+            final Long constId = construction.getId();
+
+            var scheduledJobId = jobScheduler.schedule(jobTime,
+                    () -> completeConstructionJob(constId)
+            );
+
+            construction.setJobId(scheduledJobId.asUUID().toString());
+
+            // F. Kaydet
+            constructionRepository.save(construction);
+
+            // G. Pointer'ı bu işin bitişine taşı (Bir sonraki iş bunun peşine eklensin)
+            timelinePointer = newCompletionTime;
+
+            System.out.println("Kuyruk güncellendi: " + construction.getBuildingType() + " yeni bitiş: " + newCompletionTime);
+        }
     }
 
     private int getBuildingLevel(VillageBuildingsModel model, BuildingType type) {
@@ -374,8 +480,8 @@ public class VillageServiceImpl implements VillageService {
                 .xcoord(village.getXcoord())
                 .ycoord(village.getYcoord())
                 .points(village.getPoints())
-                .playerId(village.getPlayer().getId())
-                .playerName(village.getPlayer().getUser().getUsername())
+                .playerId(village.getPlayer() != null ? village.getPlayer().getId() : null)
+                .playerName(village.getPlayer() != null ? village.getPlayer().getUser().getUsername() : "")
                 .build();
     }
 
@@ -420,7 +526,8 @@ public class VillageServiceImpl implements VillageService {
 
     // --- INITIALIZERS (CreateFirstVillage için) ---
 
-    private void createInitialBuildings(VillageEntity village) {
+    @Override
+    public void createInitialBuildings(VillageEntity village) {
         VillageBuildingsEntity buildings = new VillageBuildingsEntity();
         buildings.setVillage(village);
         buildings.setHeadquarters(1);
@@ -430,7 +537,8 @@ public class VillageServiceImpl implements VillageService {
         village.setBuildings(buildings);
     }
 
-    private void createInitialResources(VillageEntity village) {
+    @Override
+    public void createInitialResources(VillageEntity village) {
         VillageResourcesEntity resources = new VillageResourcesEntity();
         resources.setVillage(village);
         resources.setWoodAmount(500);
@@ -439,6 +547,15 @@ public class VillageServiceImpl implements VillageService {
         resources.setLastUpdated(LocalDateTime.now());
         villageResourcesRepository.save(resources);
         village.setResources(resources);
+    }
+
+    @Override
+    public void update(VillageModel village) {
+        var optionalVillage = villageRepository.findById(village.getId());
+        if (optionalVillage.isPresent()) {
+            optionalVillage.get().setName(village.getName());
+            villageRepository.save(optionalVillage.get());
+        }
     }
 
     private void createInitialTroops(VillageEntity village) {

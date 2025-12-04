@@ -6,21 +6,20 @@ import com.sc.sancaklar.model.dto.WorldModel;
 import com.sc.sancaklar.model.dto.village.VillageModel;
 import com.sc.sancaklar.model.entity.PlayerEntity;
 import com.sc.sancaklar.model.entity.UserEntity;
+import com.sc.sancaklar.model.entity.VillageEntity;
 import com.sc.sancaklar.model.entity.WorldEntity;
 import com.sc.sancaklar.model.enums.RegionDirection;
 import com.sc.sancaklar.model.mapper.PlayerConverter;
 import com.sc.sancaklar.model.mapper.WorldConverter;
 import com.sc.sancaklar.repository.PlayerRepository;
 import com.sc.sancaklar.repository.UserRepository;
+import com.sc.sancaklar.repository.VillageRepository;
 import com.sc.sancaklar.repository.WorldRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.List;
-import java.util.Optional;
+import java.util.*;
 
 @Service
 @RequiredArgsConstructor
@@ -30,6 +29,7 @@ public class WorldServiceImpl implements WorldService {
     private final PlayerRepository playerRepository;
     private final UserRepository userRepository;
     private final VillageService villageService;
+    private final VillageRepository villageRepository;
     private final PlayerConverter playerConverter;
 
     /**
@@ -46,7 +46,56 @@ public class WorldServiceImpl implements WorldService {
         WorldEntity savedEntity = worldRepository.save(entity);
 
         // 3. Kaydedilen Entity'yi tekrar Model'e çevirip dön
-        return worldConverter.toModel(savedEntity);
+        var savedModel = worldConverter.toModel(savedEntity);
+
+        generateBarbarianVillages(savedEntity, 25);
+
+        return savedModel;
+    }
+
+    @Transactional
+    public void generateBarbarianVillages(WorldEntity world, int count) {
+        Random random = new Random();
+        int worldSize = 200; // Harita 1000x1000 varsayalım
+        int created = 0;
+
+        // Çakışmaları önlemek için basit bir set (Mevcut köyleri buraya ekle)
+        // Performans için DB'den tüm dolu koordinatları çekip bir Set'e atabilirsin.
+        Set<String> occupiedCoords = new HashSet<>();
+        villageRepository.findAllByWorldId(world.getId()).forEach(v ->
+                occupiedCoords.add(v.getXcoord() + "," + v.getYcoord())
+        );
+
+        while (created < count) {
+            int x = random.nextInt(worldSize);
+            int y = random.nextInt(worldSize);
+            String coordKey = x + "," + y;
+
+            // Eğer koordinat doluysa pas geç
+            if (occupiedCoords.contains(coordKey)) {
+                continue;
+            }
+
+            // --- BARBAR KÖYÜ OLUŞTUR ---
+            VillageEntity barbarianVillage = new VillageEntity();
+            barbarianVillage.setName("Barbar Köyü");
+            barbarianVillage.setXcoord(x);
+            barbarianVillage.setYcoord(y);
+            barbarianVillage.setWorld(world);
+            barbarianVillage.setPoints(26);
+            barbarianVillage.setPlayer(null);
+            barbarianVillage = villageRepository.save(barbarianVillage);
+
+            // --- BAŞLANGIÇ BİNALARI VE KAYNAKLARI (Oyuncuyla aynı) ---
+            // Bu metotları zaten Player için yazmıştın, aynısını kullanıyoruz.
+            villageService.createInitialBuildings(barbarianVillage);
+            villageService.createInitialResources(barbarianVillage);
+
+            occupiedCoords.add(coordKey);
+            created++;
+        }
+
+        System.out.println(count + " adet Barbar Köyü haritaya saçıldı!");
     }
 
     /**

@@ -39,5 +39,9 @@ public class VillageEntity extends BaseEntity {
     @OneToOne(mappedBy = "village", cascade = CascadeType.ALL)
     private VillageResearchesEntity researches;
 
+    @ManyToOne
+    @JoinColumn(name = "world_id", nullable = false)
+    private WorldEntity world;
+
     private int loyalty = 100;
 }

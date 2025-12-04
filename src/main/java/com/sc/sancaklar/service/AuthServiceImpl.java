@@ -124,7 +124,7 @@ public class AuthServiceImpl implements AuthService {
                 throw new AnErrorOccurredException(e.getMessage());
             }
             ResponseMessageModel responseMessageModel = new ResponseMessageModel();
-            responseMessageModel.setMessage(passwordRefreshModel.getMail() + ProjectConstant.MAIL_SUCCESS);
+            responseMessageModel.setMessage(passwordRefreshModel.getMail().concat(" ").concat(ProjectConstant.MAIL_SUCCESS));
             return responseMessageModel;
         } else {
             throw new NotFoundException(passwordRefreshModel.getMail());

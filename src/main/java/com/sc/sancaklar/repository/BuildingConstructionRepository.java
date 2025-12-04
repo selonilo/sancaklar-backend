@@ -24,4 +24,7 @@ public interface BuildingConstructionRepository extends JpaRepository<BuildingCo
 
     // Verilen zamandan (muhtemelen ŞİMDİ) önce bitmesi gereken tüm inşaatları getir.
     List<BuildingConstructionEntity> findByCompletionTimeBefore(LocalDateTime dateTime);
+
+    List<BuildingConstructionEntity> findAllByVillageOrderByStartTimeAsc(VillageEntity village);
+
 }
