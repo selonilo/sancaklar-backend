@@ -28,4 +28,7 @@ public class ResearchQueueEntity extends BaseEntity {
 
     private LocalDateTime startTime;
     private LocalDateTime completionTime;
+
+    @Column(name = "job_id")
+    private String jobId;
 }

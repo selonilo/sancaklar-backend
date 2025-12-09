@@ -99,7 +99,7 @@ public class GameLoopService {
         }
     }
 
-    /*@Scheduled(fixedRate = 5000)
+    @Scheduled(fixedRate = 5000)
     @Transactional
     public void checkCompletedResearches() {
         LocalDateTime now = LocalDateTime.now();
@@ -112,7 +112,7 @@ public class GameLoopService {
         if (!completed.isEmpty()) {
             researchQueueRepository.deleteAll(completed);
         }
-    }*/
+    }
 
     private void completeResearch(ResearchQueueEntity task) {
         VillageEntity village = task.getVillage();

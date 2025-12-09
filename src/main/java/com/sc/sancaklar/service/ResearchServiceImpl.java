@@ -8,11 +8,16 @@ import com.sc.sancaklar.model.enums.UnitType;
 import com.sc.sancaklar.model.mapper.ResearchConverter;
 import com.sc.sancaklar.repository.ResearchQueueRepository;
 import com.sc.sancaklar.repository.VillageRepository;
+import com.sc.sancaklar.repository.VillageResearchesRepository;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
+import org.jobrunr.jobs.annotations.Job;
+import org.jobrunr.scheduling.JobScheduler;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDateTime;
+import java.time.OffsetDateTime;
+import java.time.ZoneId;
 import java.util.List;
 
 @Service
@@ -23,6 +28,8 @@ public class ResearchServiceImpl implements ResearchService {
     private final ResearchQueueRepository researchQueueRepository;
     private final ResourceService resourceService;
     private final ResearchConverter researchConverter;
+    private final JobScheduler jobScheduler;
+    private final VillageResearchesRepository villageResearchesRepository;
 
     @Transactional
     public void startResearch(Long villageId, UnitType unitType) {
@@ -65,13 +72,72 @@ public class ResearchServiceImpl implements ResearchService {
         int worldSpeed = village.getPlayer().getWorld().getSpeed();
         long duration = GameCalculator.getResearchTime(unitType, buildings.getSmithy(), worldSpeed);
 
+        LocalDateTime completionTime = LocalDateTime.now().plusSeconds(duration);
+
         ResearchQueueEntity research = new ResearchQueueEntity();
         research.setVillage(village);
         research.setUnitType(unitType);
         research.setStartTime(LocalDateTime.now());
-        research.setCompletionTime(LocalDateTime.now().plusSeconds(duration));
+        research.setCompletionTime(completionTime);
 
         researchQueueRepository.save(research);
+
+        // 10. JOBRUNR ZAMANLAMASI
+        OffsetDateTime jobTime = completionTime.atZone(ZoneId.systemDefault()).toOffsetDateTime();
+        final Long researchTaskId = research.getId();
+
+        // Worker metodumuzu çağırıyoruz
+        var scheduledJobId = jobScheduler.schedule(jobTime,
+                () -> completeResearchJob(researchTaskId)
+        );
+
+        // 11. Job ID'yi kaydet (İptal etmek istersen lazım olur)
+        research.setJobId(scheduledJobId.asUUID().toString());
+    }
+
+    // Dashboard'da ne iş yaptığı belli olsun
+    @Job(name = "Research Completion")
+    @Transactional
+    public void completeResearchJob(Long researchTaskId) {
+        // 1. Görevi bul
+        ResearchQueueEntity task = researchQueueRepository.findById(researchTaskId).orElse(null);
+
+        if (task == null) {
+            // Görev silinmişse (iptal edilmişse) işlem yapma
+            return;
+        }
+
+        VillageEntity village = task.getVillage();
+        VillageResearchesEntity researches = village.getResearches();
+
+        // 2. İlgili birimi '1' (Açık) yap
+        // Senin switch-case mantığını buraya taşıyoruz
+        switch (task.getUnitType()) {
+            // --- PİYADELER ---
+            case SPEARMAN: researches.setSpearmen(1); break;
+            case SWORDSMAN: researches.setSwordsmen(1); break;
+            case AXEMAN: researches.setAxemen(1); break;
+            case ARCHER: researches.setArchers(1); break;
+
+            // --- ATLILAR VE CASUS ---
+            case SCOUT: researches.setScouts(1); break;
+            case LIGHT_CAVALRY: researches.setLightCavalry(1); break;
+            case HEAVY_CAVALRY: researches.setHeavyCavalry(1); break;
+
+            // --- KUŞATMA VE ÖZEL ---
+            case RAM: researches.setRams(1); break;
+            case CATAPULT: researches.setCatapults(1); break;
+            case CONQUEROR: researches.setConquerors(1); break; // Sancaklar/Misyoner
+        }
+
+        // Değişiklikleri kaydet
+        villageResearchesRepository.save(researches);
+
+        // 3. (Opsiyonel) Bildirim veya Log
+        System.out.println("Araştırma tamamlandı: Köy " + village.getId() + " - " + task.getUnitType());
+
+        // 4. Görevi Kuyruktan Sil
+        researchQueueRepository.delete(task);
     }
 
     @Override
