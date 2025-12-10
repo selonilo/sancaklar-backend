@@ -1,6 +1,7 @@
 package com.sc.sancaklar.model.entity;
 
 import com.sc.sancaklar.model.entity.base.BaseEntity;
+import com.sc.sancaklar.model.enums.BuildingType;
 import com.sc.sancaklar.model.enums.UnitType;
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
@@ -34,4 +35,10 @@ public class UnitRecruitmentEntity extends BaseEntity {
     // Bir askerin üretim süresi (Saniye cinsinden).
     // Neden tutuyoruz? Çünkü sunucu durursa veya işlem yarım kalırsa kalan süreyi hesaplamak için.
     private int secondsPerUnit;
+
+    @Enumerated(EnumType.ORDINAL)
+    private BuildingType buildingType;
+
+    @Column(name = "job_id")
+    private String jobId;
 }

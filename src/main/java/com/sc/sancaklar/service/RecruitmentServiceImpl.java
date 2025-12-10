@@ -3,20 +3,23 @@ package com.sc.sancaklar.service;
 import com.sc.sancaklar.model.data.GameCalculator;
 import com.sc.sancaklar.model.dto.RecruitRequest;
 import com.sc.sancaklar.model.dto.UnitRecruitmentModel;
-import com.sc.sancaklar.model.entity.UnitRecruitmentEntity;
-import com.sc.sancaklar.model.entity.VillageBuildingsEntity;
-import com.sc.sancaklar.model.entity.VillageEntity;
-import com.sc.sancaklar.model.entity.VillageResourcesEntity;
+import com.sc.sancaklar.model.entity.*;
 import com.sc.sancaklar.model.enums.BuildingType;
 import com.sc.sancaklar.model.mapper.RecruitmentConverter;
 import com.sc.sancaklar.repository.UnitRecruitmentRepository;
 import com.sc.sancaklar.repository.VillageRepository;
+import com.sc.sancaklar.repository.VillageTroopsRepository;
 import lombok.RequiredArgsConstructor;
+import org.jobrunr.jobs.annotations.Job;
+import org.jobrunr.scheduling.JobScheduler;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDateTime;
+import java.time.OffsetDateTime;
+import java.time.ZoneId;
 import java.util.List;
+import java.util.Optional;
 
 @Service
 @RequiredArgsConstructor
@@ -27,100 +30,171 @@ public class RecruitmentServiceImpl implements RecruitmentService{
     private final ResourceService resourceService;
     private final ResearchService researchService; // Araştırma kontrolü için
     private final RecruitmentConverter recruitmentConverter;
+    private final VillageTroopsRepository villageTroopsRepository;
+    private final UnitRecruitmentRepository unitRecruitmentRepository;
+    private final JobScheduler jobScheduler;
 
-    @Override
     @Transactional
+    @Override
     public void recruitUnits(RecruitRequest request) {
-        // 1. Validasyonlar
-        if (request.getAmount() <= 0) throw new RuntimeException("Miktar 0'dan büyük olmalı!");
+        // --- 1. Validasyonlar ---
+        if (request.getAmount() <= 0) {
+            throw new RuntimeException("Miktar 0'dan büyük olmalı!");
+        }
 
         VillageEntity village = villageRepository.findById(request.getVillageId())
                 .orElseThrow(() -> new RuntimeException("Köy bulunamadı!"));
 
+        // --- 2. Kaynak Hesaplama ve Kontroller ---
         resourceService.calculateAndUpdateResources(village);
-
         VillageResourcesEntity resources = village.getResources();
         VillageBuildingsEntity buildings = village.getBuildings();
 
-        // 2. Araştırma Kontrolü (Daha önce yazdığın metod)
-        // Bu metod ResearchService içinde 'public' olmalı
+        // Birim Araştırılmış mı?
         if (!researchService.isResearched(village.getResearches(), request.getUnitType())) {
             throw new RuntimeException("Bu birim henüz araştırılmamış!");
         }
 
-        // 3. Kaynak ve Nüfus Maliyeti Hesapla
+        // Üretim Binası (Kışla/Ahır) Kurulu mu?
+        BuildingType productionBuilding = GameCalculator.getProductionBuilding(request.getUnitType());
+        int buildingLevel = getBuildingLevel(buildings, productionBuilding);
+        if (buildingLevel == 0) {
+            throw new RuntimeException("Üretim binası (" + productionBuilding + ") kurulu değil!");
+        }
+
+        // --- 3. Maliyet Hesaplama ---
         int[] unitCost = GameCalculator.getUnitCost(request.getUnitType());
-        int totalWood = unitCost[0] * request.getAmount();
-        int totalMeat = unitCost[1] * request.getAmount();
-        int totalIron = unitCost[2] * request.getAmount();
+        int costWood = unitCost[0] * request.getAmount();
+        int costMeat = unitCost[1] * request.getAmount();
+        int costIron = unitCost[2] * request.getAmount();
 
-        // Çiftlik Limiti Kontrolü (Basitleştirilmiş)
-        // Gerçekte: Mevcut Askerler + Kuyruktakiler + Yeni İstek <= Çiftlik Kapasitesi
-        int unitPop = GameCalculator.getUnitPopulation(request.getUnitType());
-        int requiredPop = unitPop * request.getAmount();
-
-        // TODO: Mevcut nüfus hesaplama metodu eklenecek (calculateUsedPopulation)
-        // Şimdilik kaynak yetiyorsa bas diyelim, farm kontrolünü ayrıca ekleriz.
-
-        if (resources.getWoodAmount() < totalWood ||
-                resources.getMeatAmount() < totalMeat ||
-                resources.getIronAmount() < totalIron) {
+        // Kaynak Yeterli mi?
+        if (resources.getWoodAmount() < costWood ||
+                resources.getMeatAmount() < costMeat ||
+                resources.getIronAmount() < costIron) {
             throw new RuntimeException("Yetersiz Kaynak!");
         }
 
-        // 4. Kaynakları Düş
-        resources.setWoodAmount(resources.getWoodAmount() - totalWood);
-        resources.setMeatAmount(resources.getMeatAmount() - totalMeat);
-        resources.setIronAmount(resources.getIronAmount() - totalIron);
+        // Nüfus Yeterli mi? (Basit kontrol)
+        int popPerUnit = GameCalculator.getUnitPopulation(request.getUnitType());
+        //çiftlik kontrollerini düzenleyecez.
+        /*int totalPopNeeded = popPerUnit * request.getAmount();
+        // Buraya calculateUsedPopulation(village) metodu ile detaylı kontrol eklenmeli
+        if (resources.getPopulation() + totalPopNeeded > resources.getMaxPopulation()) {
+            throw new RuntimeException("Çiftlikte yer yok!");
+        }*/
 
-        // 5. Süre Hesapla
+        // --- 4. Ödeme Alma ---
+        resources.setWoodAmount(resources.getWoodAmount() - costWood);
+        resources.setMeatAmount(resources.getMeatAmount() - costMeat);
+        resources.setIronAmount(resources.getIronAmount() - costIron);
+        //resources.setPopulation(resources.getPopulation() + totalPopNeeded); // Nüfusu hemen düşüyoruz
+
+        // --- 5. Süre Hesaplama ---
         int worldSpeed = village.getPlayer().getWorld().getSpeed();
-        BuildingType productionBuilding = GameCalculator.getProductionBuilding(request.getUnitType());
-
-        // İlgili binanın seviyesini bul (Switch-case helper kullan)
-        int buildingLevel = getBuildingLevel(buildings, productionBuilding);
-
-        if (buildingLevel == 0) throw new RuntimeException("Üretim binası (Kışla/Ahır) kurulu değil!");
-
+        // Bir askerin üretim süresi (saniye)
         long oneUnitSeconds = GameCalculator.getUnitProductionTime(request.getUnitType(), buildingLevel, worldSpeed);
-        long totalSeconds = oneUnitSeconds * request.getAmount();
+        // Toplam süre
+        long totalDurationSeconds = oneUnitSeconds * request.getAmount();
 
-        // 6. Kuyruk Mantığı (Queue)
-        // Eğer Kışlada zaten üretim varsa, bu emir onun bitişine eklenmeli.
-        // Ancak Ahır üretimi Kışlayı beklemez. Paraleldir.
+        // --- 6. KUYRUK MANTIĞI (Queue Logic) ---
+        // Şimdiki zamanı alıyoruz
+        LocalDateTime effectiveStartTime = LocalDateTime.now();
 
-        LocalDateTime startTime = LocalDateTime.now();
+        // Veritabanından bu köyde ve BU BİNADA (Örn: Sadece Kışla) bekleyen son işi bul
+        Optional<UnitRecruitmentEntity> lastJob = recruitmentRepository
+                .findFirstByVillageAndBuildingTypeOrderByCompletionTimeDesc(village, productionBuilding);
 
-        // Köydeki tüm kuyruğu çekip, aynı tip binada olan en son işi buluyoruz
-        List<UnitRecruitmentEntity> queue = recruitmentRepository.findByVillageIdOrderByCompletionTimeDesc(village.getId());
-
-        for (UnitRecruitmentEntity item : queue) {
-            BuildingType itemBuilding = GameCalculator.getProductionBuilding(item.getUnitType());
-            if (itemBuilding == productionBuilding) {
-                // Aynı binada (Örn: Kışla) başka iş var, onun bitişini bekle
-                if (item.getCompletionTime().isAfter(startTime)) {
-                    startTime = item.getCompletionTime();
-                }
-                break; // En son biteni bulduk (OrderByDesc sayesinde), döngüden çık
+        if (lastJob.isPresent()) {
+            LocalDateTime lastEndTime = lastJob.get().getCompletionTime();
+            // Eğer kuyruktaki son iş henüz bitmediyse, bizim işimiz onun bittiği an başlar
+            if (lastEndTime.isAfter(effectiveStartTime)) {
+                effectiveStartTime = lastEndTime;
             }
         }
 
-        LocalDateTime completionTime = startTime.plusSeconds(totalSeconds);
+        // Bitiş zamanı = (Efektif Başlangıç) + (Toplam Süre)
+        LocalDateTime completionTime = effectiveStartTime.plusSeconds(totalDurationSeconds);
 
-        // 7. Kaydet
+        // --- 7. Entity Oluşturma ve Kaydetme ---
         UnitRecruitmentEntity recruitment = new UnitRecruitmentEntity();
         recruitment.setVillage(village);
         recruitment.setUnitType(request.getUnitType());
         recruitment.setQuantity(request.getAmount());
-        recruitment.setSecondsPerUnit((int) oneUnitSeconds); // Bilgi amaçlı
+        recruitment.setProducedAmount(0); // Henüz hiç üretilmedi
+        recruitment.setBuildingType(productionBuilding); // EnumType.ORDINAL olarak kaydedilecek
+        recruitment.setSecondsPerUnit((int) oneUnitSeconds);
         recruitment.setCompletionTime(completionTime);
-        // startTime entity'de yoksa ekleyebilirsin veya completion - duration yapabilirsin
 
-        recruitmentRepository.save(recruitment);
+        // Önce DB'ye kaydedip ID alalım
+        recruitment = recruitmentRepository.save(recruitment);
+
+        // --- 8. JobRunr Zamanlaması ---
+        // İşlem tam bittiği an çalışacak bir job ayarlıyoruz
+        OffsetDateTime jobTime = completionTime.atZone(ZoneId.systemDefault()).toOffsetDateTime();
+        final Long recruitmentId = recruitment.getId();
+
+        var scheduledJobId = jobScheduler.schedule(jobTime,
+                () -> completeRecruitmentJob(recruitmentId)
+        );
+
+        // Job ID'yi güncelle
+        recruitment.setJobId(scheduledJobId.asUUID().toString());
+
+        System.out.println("Asker üretimi başlandı: Köy " + village.getId());
     }
 
-    // Helper: ResearchService'deki private metodu buraya kopyalayabilirsin
-    // veya ResearchService'dekini public yapıp çağırabilirsin.
+    // --- WORKER METHOD ---
+
+    @Job(name = "Complete Unit Recruitment") // Dashboard'da görünecek isim
+    @Transactional
+    public void completeRecruitmentJob(Long recruitmentId) {
+        // 1. Görevi ID ile bul
+        UnitRecruitmentEntity task = recruitmentRepository.findById(recruitmentId).orElse(null);
+
+        // Eğer görev silinmişse veya iptal edilmişse işlem yapma
+        if (task == null) {
+            return;
+        }
+
+        VillageEntity village = task.getVillage();
+
+        // 2. Askerleri Köye Ekle (Senin switch-case mantığın)
+        VillageTroopsEntity troops = village.getTroops();
+
+        // Eğer troops tablosu null gelirse (ilk kez asker üretiliyorsa) oluştur
+        if (troops == null) {
+            troops = new VillageTroopsEntity();
+            troops.setVillage(village);
+            // Diğer fieldları 0 set edebilirsin veya entity default değerlerin vardır
+        }
+
+        int amount = task.getQuantity();
+
+        switch (task.getUnitType()) {
+            case SPEARMAN -> troops.setSpearman(troops.getSpearman() + amount);
+            case SWORDSMAN -> troops.setSwordsman(troops.getSwordsman() + amount);
+            case AXEMAN -> troops.setAxeman(troops.getAxeman() + amount);
+            case ARCHER -> troops.setArcher(troops.getArcher() + amount);
+
+            case SCOUT -> troops.setScout(troops.getScout() + amount);
+            case LIGHT_CAVALRY -> troops.setLightCavalry(troops.getLightCavalry() + amount);
+            case HEAVY_CAVALRY -> troops.setHeavyCavalry(troops.getHeavyCavalry() + amount);
+
+            case RAM -> troops.setRam(troops.getRam() + amount);
+            case CATAPULT -> troops.setCatapult(troops.getCatapult() + amount);
+
+            case CONQUEROR -> troops.setConqueror(troops.getConqueror() + amount);
+        }
+
+        // 3. Güncel Asker Sayısını Kaydet
+        villageTroopsRepository.save(troops);
+
+        // 4. Görevi Kuyruktan Sil (İşlem tamamlandı)
+        unitRecruitmentRepository.delete(task);
+
+        System.out.println("Asker üretimi tamamlandı: Köy " + village.getId() + " - " + task.getUnitType());
+    }
 
     private int getBuildingLevel(VillageBuildingsEntity b, BuildingType type) {
         return switch (type) {

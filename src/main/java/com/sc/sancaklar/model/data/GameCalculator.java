@@ -4,6 +4,9 @@ import com.sc.sancaklar.model.entity.VillageBuildingsEntity;
 import com.sc.sancaklar.model.enums.BuildingType;
 import com.sc.sancaklar.model.enums.UnitType;
 
+import java.util.Collections;
+import java.util.List;
+
 public class GameCalculator {
     // Temel üretim değerleri (Seviye 0 iken bile azıcık üretim olsun)
     private static final int BASE_PRODUCTION = 30;
@@ -394,6 +397,30 @@ public class GameCalculator {
             case RAM -> 30; // En yavaş (Ordu en yavaş birime göre gider)
             case CONQUEROR -> 35;
             default -> 18;
+        };
+    }
+
+    public static List<UnitType> getUnitsForBuilding(BuildingType building) {
+        return switch (building) {
+            case barracks -> List.of(
+                    UnitType.SPEARMAN,
+                    UnitType.SWORDSMAN,
+                    UnitType.AXEMAN,
+                    UnitType.ARCHER
+            );
+            case stable -> List.of(
+                    UnitType.SCOUT,
+                    UnitType.LIGHT_CAVALRY,
+                    UnitType.HEAVY_CAVALRY
+            );
+            case workshop -> List.of(
+                    UnitType.RAM,
+                    UnitType.CATAPULT
+            );
+            case academy -> List.of(
+                    UnitType.CONQUEROR
+            );
+            default -> Collections.emptyList();
         };
     }
 }
