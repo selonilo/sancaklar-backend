@@ -122,21 +122,21 @@ public class GameLoopService {
         switch (task.getUnitType()) {
             // --- PİYADELER ---
             case SPEARMAN:
-                researches.setSpearmen(1);
+                researches.setSpearman(1);
                 break;
             case SWORDSMAN:
-                researches.setSwordsmen(1);
+                researches.setSwordsman(1);
                 break;
             case AXEMAN:
-                researches.setAxemen(1);
+                researches.setAxeman(1);
                 break;
             case ARCHER:
-                researches.setArchers(1);
+                researches.setArcher(1);
                 break;
 
             // --- ATLILAR VE CASUS ---
             case SCOUT:
-                researches.setScouts(1);
+                researches.setScout(1);
                 break;
             case LIGHT_CAVALRY:
                 researches.setLightCavalry(1);
@@ -147,15 +147,15 @@ public class GameLoopService {
 
             // --- KUŞATMA SİLAHLARI ---
             case RAM:
-                researches.setRams(1);
+                researches.setRam(1);
                 break;
             case CATAPULT:
-                researches.setCatapults(1);
+                researches.setCatapult(1);
                 break;
 
             // --- ÖZEL BİRİM ---
             case CONQUEROR:
-                researches.setConquerors(1);
+                researches.setConqueror(1);
                 break;
         }
     }

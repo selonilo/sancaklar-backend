@@ -10,6 +10,7 @@ import com.sc.sancaklar.model.dto.village.VillageModel;
 import com.sc.sancaklar.model.entity.*;
 import com.sc.sancaklar.model.enums.BuildingType;
 import com.sc.sancaklar.model.enums.RegionDirection;
+import com.sc.sancaklar.model.enums.UnitType;
 import com.sc.sancaklar.model.mapper.ConstructionConverter;
 import com.sc.sancaklar.model.mapper.VillageConverter;
 import com.sc.sancaklar.repository.*;
@@ -82,6 +83,75 @@ public class VillageServiceImpl implements VillageService {
 
             setBuildingDetails(buildingsModel, type, costWood, costMeat, costIron, durationSeconds, targetLevel);
         }
+
+        var researchModel = villageModel.getResearches();
+        for (UnitType unitType : UnitType.values()) {
+            int[] costs = GameCalculator.getResearchCost(unitType);
+            long duration = GameCalculator.getResearchTime(unitType, villageModel.getBuildings().getSmithy(), worldSpeed);
+            switch (unitType) {
+                case SPEARMAN -> {
+                    researchModel.setSpearmanWood(costs[0]);
+                    researchModel.setSpearmanMeat(costs[1]);
+                    researchModel.setSpearmanIron(costs[2]);
+                    researchModel.setSpearmanDuration((int) duration);
+                }
+                case SWORDSMAN -> {
+                    researchModel.setSwordsmanWood(costs[0]);
+                    researchModel.setSwordsmanMeat(costs[1]);
+                    researchModel.setSwordsmanIron(costs[2]);
+                    researchModel.setSwordsmanDuration((int) duration);
+                }
+                case AXEMAN -> {
+                    researchModel.setAxemanWood(costs[0]);
+                    researchModel.setAxemanMeat(costs[1]);
+                    researchModel.setAxemanIron(costs[2]);
+                    researchModel.setAxemanDuration((int) duration);
+                }
+                case ARCHER -> {
+                    researchModel.setArcherWood(costs[0]);
+                    researchModel.setArcherMeat(costs[1]);
+                    researchModel.setArcherIron(costs[2]);
+                    researchModel.setArcherDuration((int) duration);
+                }
+                case SCOUT -> {
+                    researchModel.setScoutWood(costs[0]);
+                    researchModel.setScoutMeat(costs[1]);
+                    researchModel.setScoutIron(costs[2]);
+                    researchModel.setScoutDuration((int) duration);
+                }
+                case LIGHT_CAVALRY -> {
+                    researchModel.setLightCavalryWood(costs[0]);
+                    researchModel.setLightCavalryMeat(costs[1]);
+                    researchModel.setLightCavalryIron(costs[2]);
+                    researchModel.setLightCavalryDuration((int) duration);
+                }
+                case HEAVY_CAVALRY -> {
+                    researchModel.setHeavyCavalryWood(costs[0]);
+                    researchModel.setHeavyCavalryMeat(costs[1]);
+                    researchModel.setHeavyCavalryIron(costs[2]);
+                    researchModel.setHeavyCavalryDuration((int) duration);
+                }
+                case RAM -> {
+                    researchModel.setRamWood(costs[0]);
+                    researchModel.setRamMeat(costs[1]);
+                    researchModel.setRamIron(costs[2]);
+                    researchModel.setRamDuration((int) duration);
+                }
+                case CATAPULT -> {
+                    researchModel.setCatapultWood(costs[0]);
+                    researchModel.setCatapultMeat(costs[1]);
+                    researchModel.setCatapultIron(costs[2]);
+                    researchModel.setCatapultDuration((int) duration);
+                }
+                case CONQUEROR -> {
+                    researchModel.setConquerorWood(costs[0]);
+                    researchModel.setConquerorMeat(costs[1]);
+                    researchModel.setConquerorIron(costs[2]);
+                    researchModel.setConquerorDuration((int) duration);
+                }
+            }
+        }
+
 
         return villageModel;
     }

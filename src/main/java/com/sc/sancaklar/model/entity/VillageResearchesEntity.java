@@ -25,14 +25,14 @@ public class VillageResearchesEntity extends BaseEntity {
     // 1: Araştırıldı (Üretilebilir)
     // Not: İleride 3 seviyeli sistem yaparsan 2 ve 3 de olabilir.
 
-    private int spearmen = 0;      // Mızraklı
-    private int swordsmen = 0;     // Kılıçlı
-    private int axemen = 0;        // Baltalı
-    private int archers = 0;       // Okçu
-    private int scouts = 0;        // Casus
+    private int spearman = 0;      // Mızraklı
+    private int swordsman = 0;     // Kılıçlı
+    private int axeman = 0;        // Baltalı
+    private int archer = 0;       // Okçu
+    private int scout = 0;        // Casus
     private int lightCavalry = 0;  // Hafif Atlı
     private int heavyCavalry = 0;  // Ağır Atlı
-    private int rams = 0;          // Şahmerdan
-    private int catapults = 0;     // Mancınık
-    private int conquerors = 0;    // Fetihçi
+    private int ram = 0;          // Şahmerdan
+    private int catapult = 0;     // Mancınık
+    private int conqueror = 0;    // Fetihçi
 }

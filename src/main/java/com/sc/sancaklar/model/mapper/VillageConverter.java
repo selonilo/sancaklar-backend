@@ -117,18 +117,18 @@ public class VillageConverter {
         if (entity == null) return new VillageResearchesModel(); // Boş dön, null patlamasın
 
         VillageResearchesModel model = new VillageResearchesModel();
-        model.setSpearmen(entity.getSpearmen());
-        model.setSwordsmen(entity.getSwordsmen());
-        model.setAxemen(entity.getAxemen());
-        model.setArchers(entity.getArchers());
+        model.setSpearman(entity.getSpearman());
+        model.setSwordsman(entity.getSwordsman());
+        model.setAxeman(entity.getAxeman());
+        model.setArcher(entity.getArcher());
 
-        model.setScouts(entity.getScouts());
+        model.setScout(entity.getScout());
         model.setLightCavalry(entity.getLightCavalry());
         model.setHeavyCavalry(entity.getHeavyCavalry());
 
-        model.setRams(entity.getRams());
-        model.setCatapults(entity.getCatapults());
-        model.setConquerors(entity.getConquerors());
+        model.setRam(entity.getRam());
+        model.setCatapult(entity.getCatapult());
+        model.setConqueror(entity.getConqueror());
 
         return model;
     }

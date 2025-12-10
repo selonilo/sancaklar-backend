@@ -209,27 +209,59 @@ public class GameCalculator {
     public static int[] getResearchCost(UnitType unit) {
         // Sırasıyla: Odun, Et, Demir
         return switch (unit) {
-            case SPEARMAN -> new int[]{100, 100, 100}; // Ucuz
-            case SWORDSMAN -> new int[]{500, 400, 300};
-            case AXEMAN -> new int[]{700, 600, 500};
-            case LIGHT_CAVALRY -> new int[]{1200, 1000, 800};
-            case CONQUEROR -> new int[]{15000, 20000, 15000}; // Çok pahalı
+            // --- Piyadeler ---
+            case SPEARMAN -> new int[]{100, 100, 100};      // Başlangıç birimi
+            case SWORDSMAN -> new int[]{500, 400, 300};     // Savunma odaklı
+            case AXEMAN -> new int[]{700, 600, 500};        // Saldırı odaklı
+            case ARCHER -> new int[]{600, 300, 400};        // Yay için Odun ağırlıklı
+
+            // --- Atlılar ve Casus ---
+            case SCOUT -> new int[]{200, 500, 200};         // Hızlı, fazla et (erzak) yer
+            case LIGHT_CAVALRY -> new int[]{1200, 1000, 800}; // Hızlı yağma
+            case HEAVY_CAVALRY -> new int[]{2500, 2000, 3000}; // Zırh için çok Demir gerekir
+
+            // --- Kuşatma ---
+            case RAM -> new int[]{1200, 800, 1200};         // Odun ve Demir dengeli
+            case CATAPULT -> new int[]{1600, 1200, 1500};   // Mancınık daha pahalı
+
+            // --- Özel ---
+            case CONQUEROR -> new int[]{15000, 20000, 15000}; // Oyun sonu birimi (Misyoner/Asilzade)
+
+            // Hata durumunda varsayılan (veya exception fırlatılabilir)
             default -> new int[]{500, 500, 500};
         };
     }
 
-    // Araştırma Süresi (Saniye)
     public static long getResearchTime(UnitType unit, int smithyLevel, int worldSpeed) {
+        // Saniye cinsinden baz süreler (Smithy Lvl 0 varsayımıyla)
         int baseSeconds = switch (unit) {
-            case SPEARMAN -> 300; // 5 dk
-            case SWORDSMAN -> 900; // 15 dk
-            case CONQUEROR -> 10800; // 3 saat
-            default -> 1800;
+            // --- Tier 1: Piyadeler ---
+            case SPEARMAN -> 300;         // 5 dk
+            case SWORDSMAN -> 900;        // 15 dk
+            case AXEMAN -> 1200;          // 20 dk (Saldırı birimi biraz daha uzun)
+            case ARCHER -> 1200;          // 20 dk
+
+            // --- Tier 2: Atlılar ve Casus ---
+            case SCOUT -> 900;            // 15 dk (Erken oyun için hızlı erişim)
+            case LIGHT_CAVALRY -> 2400;   // 40 dk
+            case HEAVY_CAVALRY -> 3600;   // 60 dk (1 saat)
+
+            // --- Tier 3: Kuşatma ---
+            case RAM -> 2700;             // 45 dk
+            case CATAPULT -> 4800;        // 80 dk (1 saat 20 dk)
+
+            // --- Tier 4: Özel ---
+            case CONQUEROR -> 10800;
+            default -> 1;// 180 dk (3 saat)
         };
 
         // Demirci seviyesi arttıkça araştırma hızlanır
+        // Örnek: Lvl 20 için -> 1 + (20 * 0.05) = 2 (Süre yarıya iner)
         double reduction = 1 + (smithyLevel * 0.05);
-        return (long) ((baseSeconds / reduction) / worldSpeed);
+
+        // Hesaplama ve 0'a bölünme/sıfır çıkma riskine karşı koruma (en az 1 sn)
+        long finalTime = (long) ((baseSeconds / reduction) / worldSpeed);
+        return Math.max(1, finalTime);
     }
 
     // Gereksinim Kontrolü (Bina seviyeleri yetiyor mu?)

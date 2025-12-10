@@ -114,20 +114,20 @@ public class ResearchServiceImpl implements ResearchService {
         // Senin switch-case mantığını buraya taşıyoruz
         switch (task.getUnitType()) {
             // --- PİYADELER ---
-            case SPEARMAN: researches.setSpearmen(1); break;
-            case SWORDSMAN: researches.setSwordsmen(1); break;
-            case AXEMAN: researches.setAxemen(1); break;
-            case ARCHER: researches.setArchers(1); break;
+            case SPEARMAN: researches.setSpearman(1); break;
+            case SWORDSMAN: researches.setSwordsman(1); break;
+            case AXEMAN: researches.setAxeman(1); break;
+            case ARCHER: researches.setArcher(1); break;
 
             // --- ATLILAR VE CASUS ---
-            case SCOUT: researches.setScouts(1); break;
+            case SCOUT: researches.setScout(1); break;
             case LIGHT_CAVALRY: researches.setLightCavalry(1); break;
             case HEAVY_CAVALRY: researches.setHeavyCavalry(1); break;
 
             // --- KUŞATMA VE ÖZEL ---
-            case RAM: researches.setRams(1); break;
-            case CATAPULT: researches.setCatapults(1); break;
-            case CONQUEROR: researches.setConquerors(1); break; // Sancaklar/Misyoner
+            case RAM: researches.setRam(1); break;
+            case CATAPULT: researches.setCatapult(1); break;
+            case CONQUEROR: researches.setConqueror(1); break; // Sancaklar/Misyoner
         }
 
         // Değişiklikleri kaydet
@@ -144,22 +144,22 @@ public class ResearchServiceImpl implements ResearchService {
     public boolean isResearched(VillageResearchesEntity r, UnitType type) {
         return switch (type) {
             // --- PİYADELER ---
-            case SPEARMAN -> r.getSpearmen() > 0;
-            case SWORDSMAN -> r.getSwordsmen() > 0;
-            case AXEMAN -> r.getAxemen() > 0;
-            case ARCHER -> r.getArchers() > 0;
+            case SPEARMAN -> r.getSpearman() > 0;
+            case SWORDSMAN -> r.getSwordsman() > 0;
+            case AXEMAN -> r.getAxeman() > 0;
+            case ARCHER -> r.getArcher() > 0;
 
             // --- ATLILAR VE CASUS ---
-            case SCOUT -> r.getScouts() > 0;
+            case SCOUT -> r.getScout() > 0;
             case LIGHT_CAVALRY -> r.getLightCavalry() > 0;
             case HEAVY_CAVALRY -> r.getHeavyCavalry() > 0;
 
             // --- KUŞATMA SİLAHLARI ---
-            case RAM -> r.getRams() > 0;
-            case CATAPULT -> r.getCatapults() > 0;
+            case RAM -> r.getRam() > 0;
+            case CATAPULT -> r.getCatapult() > 0;
 
             // --- ÖZEL BİRİM ---
-            case CONQUEROR -> r.getConquerors() > 0;
+            case CONQUEROR -> r.getConqueror() > 0;
             default -> false;
         };
     }
