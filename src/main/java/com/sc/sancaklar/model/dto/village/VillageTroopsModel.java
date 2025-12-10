@@ -4,14 +4,14 @@ import lombok.Data;
 
 @Data
 public class VillageTroopsModel {
-    private int spearmen;
-    private int swordsmen;
-    private int axemen;
-    private int archers;
-    private int scouts;
+    private int spearman;
+    private int swordsman;
+    private int axeman;
+    private int archer;
+    private int scout;
     private int lightCavalry;
     private int heavyCavalry;
-    private int rams;
-    private int catapults;
-    private int conquerors;
+    private int ram;
+    private int catapult;
+    private int conqueror;
 }

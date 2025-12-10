@@ -22,20 +22,20 @@ public class VillageTroopsEntity extends BaseEntity {
     private VillageEntity village;
 
     // Piyadeler (Kışla)
-    private int spearmen = 0;
-    private int swordsmen = 0;
-    private int axemen = 0;
-    private int archers = 0;
+    private int spearman = 0;
+    private int swordsman = 0;
+    private int axeman = 0;
+    private int archer = 0;
 
     // Atlılar (Ahır)
-    private int scouts = 0;
+    private int scout = 0;
     private int lightCavalry = 0;
     private int heavyCavalry = 0;
 
     // Kuşatma Silahları (Atölye)
-    private int rams = 0;
-    private int catapults = 0;
+    private int ram = 0;
+    private int catapult = 0;
 
     // Özel (Saray/Akademi)
-    private int conquerors = 0; // Fetihçi
+    private int conqueror = 0; // Fetihçi
 }

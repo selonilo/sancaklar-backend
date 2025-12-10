@@ -181,19 +181,19 @@ public class GameLoopService {
         int amount = task.getQuantity();
 
         switch (task.getUnitType()) {
-            case SPEARMAN: troops.setSpearmen(troops.getSpearmen() + amount); break;
-            case SWORDSMAN: troops.setSwordsmen(troops.getSwordsmen() + amount); break;
-            case AXEMAN: troops.setAxemen(troops.getAxemen() + amount); break;
-            case ARCHER: troops.setArchers(troops.getArchers() + amount); break;
+            case SPEARMAN: troops.setSpearman(troops.getSpearman() + amount); break;
+            case SWORDSMAN: troops.setSwordsman(troops.getSwordsman() + amount); break;
+            case AXEMAN: troops.setAxeman(troops.getAxeman() + amount); break;
+            case ARCHER: troops.setArcher(troops.getArcher() + amount); break;
 
-            case SCOUT: troops.setScouts(troops.getScouts() + amount); break;
+            case SCOUT: troops.setScout(troops.getScout() + amount); break;
             case LIGHT_CAVALRY: troops.setLightCavalry(troops.getLightCavalry() + amount); break;
             case HEAVY_CAVALRY: troops.setHeavyCavalry(troops.getHeavyCavalry() + amount); break;
 
-            case RAM: troops.setRams(troops.getRams() + amount); break;
-            case CATAPULT: troops.setCatapults(troops.getCatapults() + amount); break;
+            case RAM: troops.setRam(troops.getRam() + amount); break;
+            case CATAPULT: troops.setCatapult(troops.getCatapult() + amount); break;
 
-            case CONQUEROR: troops.setConquerors(troops.getConquerors() + amount); break;
+            case CONQUEROR: troops.setConqueror(troops.getConqueror() + amount); break;
         }
 
         villageTroopsRepository.save(troops);
@@ -281,20 +281,20 @@ public class GameLoopService {
         // 1. Askerleri Ana Stoğa Ekle (Tüm 10 Birim) 💂
 
         // Piyadeler
-        troops.setSpearmen(troops.getSpearmen() + move.getSpearmen());
-        troops.setSwordsmen(troops.getSwordsmen() + move.getSwordsmen());
-        troops.setAxemen(troops.getAxemen() + move.getAxemen());
-        troops.setArchers(troops.getArchers() + move.getArchers());
+        troops.setSpearman(troops.getSpearman() + move.getSpearmen());
+        troops.setSwordsman(troops.getSwordsman() + move.getSwordsmen());
+        troops.setAxeman(troops.getAxeman() + move.getAxemen());
+        troops.setArcher(troops.getArcher() + move.getArchers());
 
         // Atliler ve Casus
-        troops.setScouts(troops.getScouts() + move.getScouts());
+        troops.setScout(troops.getScout() + move.getScouts());
         troops.setLightCavalry(troops.getLightCavalry() + move.getLightCavalry());
         troops.setHeavyCavalry(troops.getHeavyCavalry() + move.getHeavyCavalry());
 
         // Kuşatma ve Özel
-        troops.setRams(troops.getRams() + move.getRams());
-        troops.setCatapults(troops.getCatapults() + move.getCatapults());
-        troops.setConquerors(troops.getConquerors() + move.getConquerors());
+        troops.setRam(troops.getRam() + move.getRams());
+        troops.setCatapult(troops.getCatapult() + move.getCatapults());
+        troops.setConqueror(troops.getConqueror() + move.getConquerors());
 
         // 2. Ganimeti Ana Stoğa Ekle (Loot) 💰
         // Double kullandığımız için miktar artışlarında hassasiyeti koruyoruz

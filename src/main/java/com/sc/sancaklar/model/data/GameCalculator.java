@@ -276,18 +276,28 @@ public class GameCalculator {
         };
     }
 
-    // Birim Başına Maliyet
     public static int[] getUnitCost(UnitType type) {
-        // Odun, Et, Demir
+        // Sırasıyla: Odun, Et, Demir
         return switch (type) {
-            case SPEARMAN -> new int[]{50, 30, 10};
-            case SWORDSMAN -> new int[]{30, 30, 70};
-            case AXEMAN -> new int[]{60, 30, 40};
-            case ARCHER -> new int[]{100, 30, 60};
-            case LIGHT_CAVALRY -> new int[]{125, 100, 250};
-            case HEAVY_CAVALRY -> new int[]{200, 150, 600};
-            case RAM -> new int[]{300, 200, 200};
-            case CONQUEROR -> new int[]{40000, 50000, 50000}; // Çok pahalı
+            // --- Piyadeler (Kışla) ---
+            case SPEARMAN -> new int[]{50, 30, 10};       // En ucuz, temel birim
+            case SWORDSMAN -> new int[]{30, 30, 70};      // Demir ağırlıklı (Zırh)
+            case AXEMAN -> new int[]{60, 30, 40};         // Dengeli saldırı birimi
+            case ARCHER -> new int[]{100, 30, 60};        // Odun ağırlıklı (Yay)
+
+            // --- Atlılar ve Casus (Ahır) ---
+            case SCOUT -> new int[]{50, 50, 20};          // Ucuz, hızlı üretim
+            case LIGHT_CAVALRY -> new int[]{125, 100, 250}; // Hızlı, demir ister
+            case HEAVY_CAVALRY -> new int[]{200, 150, 600}; // Çok zırhlı, çok demir
+
+            // --- Kuşatma (Atölye) ---
+            case RAM -> new int[]{300, 200, 200};         // Sur yıkıcı
+            case CATAPULT -> new int[]{320, 400, 100};    // Bina yıkıcı (Et/Kil pahalı)
+
+            // --- Özel (Akademi) ---
+            case CONQUEROR -> new int[]{40000, 50000, 50000}; // Oyun sonu, çok pahalı
+
+            // Hata önleme
             default -> new int[]{100, 100, 100};
         };
     }

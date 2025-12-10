@@ -130,16 +130,16 @@ public class BattleServiceImpl implements BattleService {
         double factor = 1.0 - lossRatio; // Hayatta kalma oranı
 
         // Yeni Miktar = Eski Miktar * Hayatta Kalma Oranı
-        defenderTroops.setSpearmen((int) (defenderTroops.getSpearmen() * factor));
-        defenderTroops.setSwordsmen((int) (defenderTroops.getSwordsmen() * factor));
-        defenderTroops.setAxemen((int) (defenderTroops.getAxemen() * factor));
-        defenderTroops.setArchers((int) (defenderTroops.getArchers() * factor));
-        defenderTroops.setScouts((int) (defenderTroops.getScouts() * factor));
+        defenderTroops.setSpearman((int) (defenderTroops.getSpearman() * factor));
+        defenderTroops.setSwordsman((int) (defenderTroops.getSwordsman() * factor));
+        defenderTroops.setAxeman((int) (defenderTroops.getAxeman() * factor));
+        defenderTroops.setArcher((int) (defenderTroops.getArcher() * factor));
+        defenderTroops.setScout((int) (defenderTroops.getScout() * factor));
         defenderTroops.setLightCavalry((int) (defenderTroops.getLightCavalry() * factor));
         defenderTroops.setHeavyCavalry((int) (defenderTroops.getHeavyCavalry() * factor));
-        defenderTroops.setRams((int) (defenderTroops.getRams() * factor));
-        defenderTroops.setCatapults((int) (defenderTroops.getCatapults() * factor));
-        defenderTroops.setConquerors((int) (defenderTroops.getConquerors() * factor));
+        defenderTroops.setRam((int) (defenderTroops.getRam() * factor));
+        defenderTroops.setCatapult((int) (defenderTroops.getCatapult() * factor));
+        defenderTroops.setConqueror((int) (defenderTroops.getConqueror() * factor));
 
         troopsRepository.save(defenderTroops);
     }

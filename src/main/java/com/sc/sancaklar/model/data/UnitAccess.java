@@ -37,16 +37,16 @@ public class UnitAccess { // static olmalı ki dış sınıfa bağlı olmadan va
             this.conquerors = a.getConquerors();
         } else if (units instanceof VillageTroopsEntity) {
             VillageTroopsEntity v = (VillageTroopsEntity) units;
-            this.spearmen = v.getSpearmen();
-            this.swordsmen = v.getSwordsmen();
-            this.axemen = v.getAxemen();
-            this.archers = v.getArchers();
-            this.scouts = v.getScouts();
+            this.spearmen = v.getSpearman();
+            this.swordsmen = v.getSwordsman();
+            this.axemen = v.getAxeman();
+            this.archers = v.getArcher();
+            this.scouts = v.getScout();
             this.lightCavalry = v.getLightCavalry();
             this.heavyCavalry = v.getHeavyCavalry();
-            this.rams = v.getRams();
-            this.catapults = v.getCatapults();
-            this.conquerors = v.getConquerors();
+            this.rams = v.getRam();
+            this.catapults = v.getCatapult();
+            this.conquerors = v.getConqueror();
         } else if (units instanceof StationedTroopsEntity) {
             StationedTroopsEntity s = (StationedTroopsEntity) units;
             this.spearmen = s.getSpearmen();

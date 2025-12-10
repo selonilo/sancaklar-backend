@@ -100,16 +100,16 @@ public class VillageConverter {
     private VillageTroopsModel toTroopsModel(VillageTroopsEntity entity) {
         if (entity == null) return new VillageTroopsModel();
         VillageTroopsModel model = new VillageTroopsModel();
-        model.setSpearmen(entity.getSpearmen());
-        model.setSwordsmen(entity.getSwordsmen());
-        model.setAxemen(entity.getAxemen());
-        model.setArchers(entity.getArchers());
-        model.setScouts(entity.getScouts());
+        model.setSpearman(entity.getSpearman());
+        model.setSwordsman(entity.getSwordsman());
+        model.setAxeman(entity.getAxeman());
+        model.setArcher(entity.getArcher());
+        model.setScout(entity.getScout());
         model.setLightCavalry(entity.getLightCavalry());
         model.setHeavyCavalry(entity.getHeavyCavalry());
-        model.setRams(entity.getRams());
-        model.setCatapults(entity.getCatapults());
-        model.setConquerors(entity.getConquerors());
+        model.setRam(entity.getRam());
+        model.setCatapult(entity.getCatapult());
+        model.setConqueror(entity.getConqueror());
         return model;
     }
 

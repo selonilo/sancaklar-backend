@@ -78,21 +78,21 @@ public class MovementServiceImpl implements MovementService {
      * @param request Gönderilmek istenen miktar.
      */
     private void checkAndSubtractTroops(VillageTroopsEntity troops, SendTroopsRequest request) {
-        if (troops.getSpearmen() < request.getSpearmenAmount()) throw new RuntimeException("Yetersiz Mızraklı!");
-        if (troops.getSwordsmen() < request.getSwordsmanAmount()) throw new RuntimeException("Yetersiz Kılıçlı!");
+        if (troops.getSpearman() < request.getSpearmenAmount()) throw new RuntimeException("Yetersiz Mızraklı!");
+        if (troops.getSwordsman() < request.getSwordsmanAmount()) throw new RuntimeException("Yetersiz Kılıçlı!");
         // ... (Diğer tüm birimler için kontrol ve hata fırlatma) ...
 
         // Düşme işlemi
-        troops.setSpearmen(troops.getSpearmen() - request.getSpearmenAmount());
-        troops.setSwordsmen(troops.getSwordsmen() - request.getSwordsmanAmount());
-        troops.setAxemen(troops.getAxemen() - request.getAxemanAmount());
-        troops.setArchers(troops.getArchers() - request.getArcherAmount());
-        troops.setScouts(troops.getScouts() - request.getScoutAmount());
+        troops.setSpearman(troops.getSpearman() - request.getSpearmenAmount());
+        troops.setSwordsman(troops.getSwordsman() - request.getSwordsmanAmount());
+        troops.setAxeman(troops.getAxeman() - request.getAxemanAmount());
+        troops.setArcher(troops.getArcher() - request.getArcherAmount());
+        troops.setScout(troops.getScout() - request.getScoutAmount());
         troops.setLightCavalry(troops.getLightCavalry() - request.getLightCavalryAmount());
         troops.setHeavyCavalry(troops.getHeavyCavalry() - request.getHeavyCavalryAmount());
-        troops.setRams(troops.getRams() - request.getRamAmount());
-        troops.setCatapults(troops.getCatapults() - request.getCatapultAmount());
-        troops.setConquerors(troops.getConquerors() - request.getConquerorAmount());
+        troops.setRam(troops.getRam() - request.getRamAmount());
+        troops.setCatapult(troops.getCatapult() - request.getCatapultAmount());
+        troops.setConqueror(troops.getConqueror() - request.getConquerorAmount());
     }
 
     /**
